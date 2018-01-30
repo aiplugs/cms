@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Aiplugs.CMS.Web.ViewModels;
+using Aiplugs.CMS.Web.Filters;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
+    [ServiceFilter(typeof(SharedDataLoad))]
     public class HomeController : Controller
     {
         public IActionResult Index()

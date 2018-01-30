@@ -6,11 +6,12 @@ namespace Aiplugs.CMS
 {
   public interface IDataService
   {
-    IEnumerable<IItem> GetItems(string collection);
-    IEnumerable<IItem> SearchItems(string collection);
+    IQueryable<IItem> GetItems(string collection);
+    IEnumerable<IItem> GetItems(string collection, long? skipToken, int limit, bool desc = true);
+    IQueryable<IItem> SearchItems(string collection);
     JObject Find(long id);
     bool Validate(string collection, JObject item);
-    void Add(string collection, JObject item);
+    long Add(string collection, JObject item);
     void Update(long id, JObject item);
     IEnumerable<JObject> GetHistory(long id);
   }

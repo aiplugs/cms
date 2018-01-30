@@ -1,35 +1,105 @@
-﻿body {
-    padding-top: 50px;
-    padding-bottom: 20px;
+﻿html,
+body,
+nav,
+ul {
+  padding: 0;
+  margin: 0;
 }
 
-/* Wrapping element */
-/* Set some basic padding to keep content from hitting the edges */
-.body-content {
-    padding-left: 15px;
-    padding-right: 15px;
+ul {
+  list-style: none;
 }
 
-/* Carousel */
-.carousel-caption p {
-    font-size: 20px;
-    line-height: 1.4;
+:root {
+  font-family: var(--base-font-family);
+  --bg-image-primary: url('/images/bg.webp');
+  --bg-image-secondary: url('/images/bg.webp');
+}
+.logo {
+  font-family: Comfortaa;
+  font-size: 18px;
 }
 
-/* Make .svg files in the carousel display properly in older browsers */
-.carousel-inner .item img[src$=".svg"] {
-    width: 100%;
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+body::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: -5px;
+  right: -5px;
+  background: var(--bg-image-secondary);
+  background-size: cover;  
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  
+  overflow-y: auto;
+  height: 100%;
+}
+section {
+  background: var(--color-base);
+  height: 100%;  
 }
 
-/* QR code generator */
-#qrCode {
-    margin: 15px;
+aiplugs-nav-items.fold aiplugs-nav-item span,
+aiplugs-nav-items.fold aiplugs-nav-items  {
+  display: none;
+}
+aiplugs-nav-items.fold {
+  width: 64px;
+}
+main section:first-child {
+  position: relative;
+  max-width: 704px;
+  width: 100%;
+}
+aiplugs-autofields {
+  background: var(--color-base);
+}
+.header {
+  position: fixed;
+  background: var(--color-base);
+}
+main section:first-child .header {
+  width: 100%;
+  max-width: 704px;
+}
+main section:first-child > article, 
+main section:first-child > div {
+  padding-top: 48px;
+  background: var(--color-base);
+  width: 100%;
+  max-width: 704px;
+  box-sizing: border-box;
+}
+main section:first-child > article {
+  padding: 48px 48px 48px;
 }
 
-/* Hide/rearrange for smaller screens */
-@media screen and (max-width: 767px) {
-    /* Hide captions */
-    .carousel-caption {
-        display: none;
-    }
+main section:first-child > aiplugs-file-manager {
+  height: 100%;
+}
+
+aiplugs-form aiplugs-actions {
+  position: fixed;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 704px;
+}
+aiplugs-autofields {
+  display: block;
+  padding: 72px 24px 0; 
 }

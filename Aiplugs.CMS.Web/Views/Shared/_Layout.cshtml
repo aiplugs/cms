@@ -1,72 +1,68 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Aiplugs.CMS.Web</title>
-
-    <environment include="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-    </environment>
-    <environment exclude="Development">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@ViewData["Title"] - Aiplugs.CMS.Web</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa">
+  <link rel="import" href="https://unpkg.com/aiplugs-elements/dist/elements.html">
+  <link rel="import" href="https://unpkg.com/aiplugs-elements/dist/theme.html">
+  <link rel="stylesheet" href="~/css/site.css" />
+  <environment include="Development">
+  </environment>
+  <environment exclude="Development">
+  </environment>
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Aiplugs.CMS.Web</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                </ul>
-                @await Html.PartialAsync("_LoginPartial")
-            </div>
-        </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; 2017 - Aiplugs.CMS.Web</p>
-        </footer>
-    </div>
-
-    <environment include="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment exclude="Development">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery"
-                crossorigin="anonymous"
-                integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
-        </script>
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
-                crossorigin="anonymous"
-                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
-
-    @RenderSection("Scripts", required: false)
+  <aiplugs-nav-items>
+    <aiplugs-nav-item class="logo">
+      <img slot="icon" src="https://unpkg.com/aiplugs-elements@0.9.4/dev/img/icon.svg" alt="aiplugs" width="32">
+      <span>aiplugs CMS</span>
+    </aiplugs-nav-item>
+    <aiplugs-nav-item class="fold-action">
+      <i slot="icon" class="fa fa-bars"></i>
+    </aiplugs-nav-item>
+    <aiplugs-nav-item class="@SharedNavPages.FilesNavClass(ViewContext)" href="@Url.Content("~/files")">
+      <i slot="icon" class="fa fa-folder"></i>
+      <span>Files</span>
+    </aiplugs-nav-item>
+    <aiplugs-nav-item>
+      <i slot="icon" class="fa fa-database"></i>
+      <span>Collections</span>
+    </aiplugs-nav-item>
+    <aiplugs-nav-items>
+      @foreach(dynamic collection in ViewBag.Collections)
+      {
+        <aiplugs-nav-item class="@SharedNavPages.Collections.NavClass(ViewContext, collection.Name)" href="@Url.Action("List", "Collections", new { name = collection.Name})">@collection.DisplayName</aiplugs-nav-item>        
+      }
+    </aiplugs-nav-items>
+    <aiplugs-nav-item>
+      <i slot="icon" class="fa fa-cog"></i>
+      <span>Settings</span>
+    </aiplugs-nav-item>
+    <aiplugs-nav-items>
+      <aiplugs-nav-item class="@SharedNavPages.Settings.CollectionsNavClass(ViewContext)" href="@Url.Content("~/settings/collections")">Collections</aiplugs-nav-item>
+      <aiplugs-nav-item class="@SharedNavPages.Settings.UsersNavClass(ViewContext)">Users</aiplugs-nav-item>
+      <aiplugs-nav-item class="@SharedNavPages.Settings.AppSettingsNavClass(ViewContext)">App Settings</aiplugs-nav-item>
+    </aiplugs-nav-items>
+    <aiplugs-nav-separator></aiplugs-nav-separator>
+    <aiplugs-nav-item slot="bottom">
+      <img slot="icon" src="https://avatars2.githubusercontent.com/u/1011232?s=32&u=332a5b77904556e83686f16105a3355f46c82292&v=4" alt="iwate" width="32">
+      iwate
+    </aiplugs-nav-item>    
+  </aiplugs-nav-items>
+  <main>
+    <section>
+      @RenderBody()
+    </section>
+  </main>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/intercooler-js/1.2.1/intercooler.min.js"></script>
+  <script src="~/js/site.js"></script>
+  <environment include="Development">
+  </environment>
+  <environment exclude="Development">
+  </environment>
+  @RenderSection("Scripts", required: false)
 </body>
 </html>

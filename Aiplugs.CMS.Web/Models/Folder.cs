@@ -6,10 +6,8 @@ namespace Aiplugs.CMS.Web.Models
 {
   public class Folder : IFolder
   {
-
-    public const int HOME = 1;
     [NotMapped]
-    public bool IsHome { get { return Id == HOME; } }
+    public bool IsHome { get { return ParentId.HasValue == false; } }
     
     [Key]
     public long Id { get; set; }
@@ -18,8 +16,6 @@ namespace Aiplugs.CMS.Web.Models
 
     [Required]
     public string Name { get; set; }
-    
-    [ForeignKey(nameof(ParentId))]
     public virtual Folder Parent { get; set; }
 
     public virtual ICollection<IFolder> Children { get; set; }

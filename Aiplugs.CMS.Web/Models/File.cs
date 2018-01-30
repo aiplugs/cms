@@ -17,7 +17,6 @@ namespace Aiplugs.CMS.Web.Models
     [Required]
     public string ContentType { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTimeOffset LastModifiedAt { get; set; }
     
     [Required]
@@ -26,8 +25,6 @@ namespace Aiplugs.CMS.Web.Models
     public byte[] Binary { get; set; }
     
     public int Size { get; set; }
-
-    [ForeignKey(nameof(FolderId))]
     public virtual Folder Folder { get; set; }
   }
 }

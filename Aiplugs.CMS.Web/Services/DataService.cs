@@ -11,24 +11,24 @@ namespace Aiplugs.CMS.Web.Services
     private readonly IItemRepository items;
     private readonly IUserManageService userResolver;
     private readonly IDataValidateService dataValidator;
-    public DataService(IItemRepository repository, IUserManageService resolver, IDataValidateService validator) 
+    public DataService(IItemRepository repository, IUserManageService resolver/*, IDataValidateService validator*/) 
     {
       items = repository;
       userResolver = resolver;
-      dataValidator = validator;
+      // dataValidator = validator;
     }
-    public void Add(string collection, JObject data)
+    public long Add(string collection, JObject data)
     {
       var user = userResolver.GetUserAsync().Result;
       if (user == null)
         throw new ApplicationException("Cannot resolve username");
 
-      items.Add(collection, data, user.Id);
+      return items.Add(collection, data, user.Id);
     }
 
     public JObject Find(long id)
     {
-      return items.Find(id).Data;
+      return items.Find(id)?.Data;
     }
 
     public IEnumerable<JObject> GetHistory(long id)
@@ -36,11 +36,29 @@ namespace Aiplugs.CMS.Web.Services
       return items.GetHistory(id).Select(r => r.Data);
     }
 
-    public IEnumerable<IItem> GetItems(string collection)
+    public IQueryable<IItem> GetItems(string collection)
     {
       return items.Get(collection);
     }
-    public IEnumerable<IItem> SearchItems(string collection)
+    public IEnumerable<IItem> GetItems(string collection, long? skipToken, int limit, bool desc = true)
+    {
+      var query = GetItems(collection);
+      
+      if (desc)
+        query = query.OrderByDescending(item => item.Id);      
+      else
+        query = query.OrderBy(item => item.Id);
+      
+      if (skipToken.HasValue) 
+        query = query.Where(item => item.Id > skipToken);
+
+      return items.Get(collection).Take(limit).ToArray();
+    }
+    public IQueryable<IItem> SearchItems(string collection)
+    {
+      throw new System.NotImplementedException();
+    }
+    public IEnumerable<IItem> SearchItems(string collection, int page, int limit)
     {
       throw new System.NotImplementedException();
     }
@@ -60,7 +78,8 @@ namespace Aiplugs.CMS.Web.Services
 
     public bool Validate(string collection, JObject data)
     {
-      return dataValidator.Validate(collection, data);
+      // return dataValidator.Validate(collection, data);
+      return true;
     }
   }
 }

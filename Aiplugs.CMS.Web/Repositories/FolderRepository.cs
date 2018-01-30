@@ -2,25 +2,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Aiplugs.CMS.Web.Data;
+using Aiplugs.CMS.Web.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aiplugs.CMS.Web.Repositories
 {
   public class FolderRepository : IFolderRepository
   {
-    public const int HOME = 1;
+    public static long Home = -1;
     private readonly ApplicationDbContext db;
     public FolderRepository(ApplicationDbContext dbContext) {
       db = dbContext;
     }
     public void Add(IFolder parent, string name)
     {
-      throw new System.NotImplementedException();
+      if (parent == null)
+        throw new ArgumentNullException(nameof(parent));
+
+      if (string.IsNullOrEmpty(name))
+        throw new ArgumentNullException(nameof(name));
+
+      var folder = (Folder)parent;
+      db.Attach(folder).Entity.Children.Add(new Folder{ Name = name });
+      db.SaveChanges();
     }
 
     public IFolder GetHome()
     {
-      return Find(HOME);
+      if (Home == -1) {
+        Home = db.Folders.Where(f => f.ParentId == null).First().Id;
+      }
+      return Find(Home);
     }
     public IFolder Find(long id)
     {

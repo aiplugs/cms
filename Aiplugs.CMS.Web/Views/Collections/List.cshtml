@@ -1,0 +1,70 @@
+@model CollectionViewModel
+@{
+  ViewData["Title"] = Model.CollectionName;
+  ViewData.AddActivePage(SharedNavPages.Collections.ResolveName(Model.CollectionName));
+  var items = Model.Items.Select(item => {
+    var data = item.Data;
+    data["@link"] = Url.CollectionDataLink(Model.CollectionName, item.Id);
+    return data;
+  });
+}
+
+<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
+<div id="list">
+  <aiplugs-actions>
+    <button id="edit" class="btn primary one">Edit</button>
+    <button id="delete" class="btn any">Delete</button>
+  </aiplugs-actions>
+  <aiplugs-columnized-list columns="title|@@lastModifiedBy|@@lastModifiedAt"
+                          label-title="Title"
+                          label-@last-modified-by="Last Modified By"
+                          label-@last-modified-at="Last Modified At">
+  </aiplugs-columnized-list>
+  <button id="next" class="btn gohst">More Load</button>
+</div>
+
+@section Scripts {
+// <script>
+//   const list = document.querySelector('aiplugs-columnized-list');
+//   list.items = JSON.parse('@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(items))')
+//   list.addEventListener('undefined.selected', e => {
+//     location += `/${e.detail['@@id']}`
+//   })
+// </script>
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+<script>
+  let nextLink = `@Url.Content("~/api/data/BlogPosts")?limit=${3}`
+  const dom = document.querySelector('aiplugs-columnized-list');
+  const update = data => {
+    nextLink = data.next
+    var items = data.result.map(datum => {
+      datum["@@lastModifiedAt"] = new Date(Date.parse(datum["@@lastModifiedAt"])).toLocaleString();
+      return datum;
+    });
+    dom.items = dom.items.concat(items);
+  }
+  const checkStatus = res => {
+    if (res.ok) {
+      return res.json();
+    }
+    else {
+      console.log(res)
+      alert(res.status);
+    }
+  }
+  const next = () => { if (nextLink) fetch(nextLink).then(checkStatus).then(update) }
+  next();
+  document.getElementById('next').addEventListener('click', e => {
+    next();
+  })
+  document.getElementById('edit').addEventListener('click', e => {
+    location += '/' + dom.selectedItem["@@id"]
+  })
+  const actions = document.querySelector('aiplugs-actions')
+  dom.addEventListener('change', e => {
+    const checked = dom.checkedItems.length;
+    const selected = dom.selectedItem ? 1 : 0;
+    actions.setAttribute('items', checked + selected);
+  })
+</script>
+}

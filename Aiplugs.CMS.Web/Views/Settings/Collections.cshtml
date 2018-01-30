@@ -1,0 +1,21 @@
+@model IEnumerable<Aiplugs.CMS.Collection>
+@{
+  ViewData["Title"] = "Collections | aiplugs";
+  ViewData.AddActivePage(SharedNavPages.Settings.Collections);
+}
+
+<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
+<header>
+  <a asp-controller="Settings" asp-action="NewCollection" class="btn btn-primary"><i class="fa fa-plus"></i>New</a>
+</header>
+<div>
+  <ul>
+    @foreach(var collection in Model) 
+    {
+      <li>
+        <a asp-controller="Settings" asp-action="Collection" asp-route-name="@collection.Name">@collection.GetDisplayName()</a>
+      </li>
+    }
+  <ul>
+</div>
+

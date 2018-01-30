@@ -13,11 +13,13 @@ using Microsoft.Extensions.Options;
 using Aiplugs.CMS.Web.Models;
 using Aiplugs.CMS.Web.ViewModels;
 using Aiplugs.CMS.Web.Services;
+using Aiplugs.CMS.Web.Filters;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
     [Authorize]
     [Route("[controller]/[action]")]
+    [ServiceFilter(typeof(SharedDataLoad))]
     public class ManageController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

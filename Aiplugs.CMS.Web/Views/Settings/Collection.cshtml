@@ -1,0 +1,21 @@
+@model Aiplugs.CMS.Collection
+@{
+  ViewData["Title"] = $"{Model.GetDisplayName() ?? "New Collection"} | aiplugs";
+  ViewData.AddActivePage(SharedNavPages.Settings.Collections);
+}
+
+<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
+<script>
+  document.querySelector('aiplugs-breadcrumb').path = ['New']
+</script>
+<div>
+  <aiplugs-form action="" method="post">
+    <aiplugs-actions>
+      <input class="btn primary" type="submit" value="Save">
+      <button class="btn">Delete</button>
+    </aiplugs-actions>
+    <aiplugs-autofields schema="@Url.Content("~/schema/collection.json")" monaco-worker="/aiplugs-elements/dev/js/monaco-editor-worker-loader-proxy.js">
+      <script type="application/json">@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model))</script>
+    </aiplugs-autofields>
+  </aiplugs-form>
+</div>

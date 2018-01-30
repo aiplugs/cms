@@ -40,6 +40,9 @@ namespace Aiplugs.CMS.Web.Services
 
     public IFolder GetFolder(string path)
     {
+      if (string.IsNullOrEmpty(path))
+        return folders.GetHome();
+      
       return folders.Find(path.Split("/"));
     }
 

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://schemas.aiplugs.com/cms/2017-10-27/root.json#",
+  "type": "object",
+  "description": "A collection settings, collection is list of your data",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "title": "ID",      
+      "description": "cannot modify"
+    },
+    "name": {
+      "type": "string",
+      "title": "Collection Name",
+      "description": "collection name",
+      "pattern": "[a-zA-Z0-9_:]*",
+      "required": true
+    },
+    "displayName": {
+      "type": "string",
+      "title": "Display Name",
+      "description": "collection name for display. if this is null, name property is used."
+    },
+    "displayOrder": {
+      "type": "integer",
+      "title": "Display Order",
+      "description": "collection order"
+    },
+    "schema": {
+      "type": "string",
+      "title": "Schema",
+      "input": {
+        "type": "code",
+        "code": {
+          "json.schema": "http://schemas.aiplugs.com/cms/2017-10-27/root.json#",
+          "language": "json"
+        }
+      },
+      "default": "{\n  \"$schema\": \"http://schemas.aiplugs.com/cms/2017-10-27/root.json#\",\n  \"properties\": {\n  }\n}",
+      "required": true
+    }
+  }
+}

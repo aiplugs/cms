@@ -19,6 +19,8 @@ namespace Aiplugs.CMS.Web.Repositories
         ContentType = contentType,
         Binary = binary,
         Size = binary.Length,
+        LastModifiedAt = DateTimeOffset.Now,
+        LastModifiedBy = new Guid().ToString()
       });
       db.SaveChanges();
     }

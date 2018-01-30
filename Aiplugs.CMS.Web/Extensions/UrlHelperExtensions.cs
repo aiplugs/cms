@@ -25,5 +25,14 @@ namespace Microsoft.AspNetCore.Mvc
                 values: new { userId, code },
                 protocol: scheme);
         }
+
+        public static string CollectionListLink(this IUrlHelper urlHelper, string collectionName)
+        {
+            return urlHelper.Action("List", "Collections", new { name = collectionName});
+        }
+        public static string CollectionDataLink(this IUrlHelper urlHelper, string collectionName, long id)
+        {
+            return urlHelper.Action("Data", "Collections", new { name = collectionName, id });
+        }
     }
 }

@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Aiplugs.CMS.Web.Data;
 using Aiplugs.CMS.Web.Models;
 using Aiplugs.CMS.Web.Services;
+using Aiplugs.CMS.Web.Repositories;
+using Aiplugs.CMS.Web.Filters;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Aiplugs.CMS.Web
 {
@@ -29,14 +32,28 @@ namespace Aiplugs.CMS.Web
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
             // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
 
+            services.AddTransient<IFolderRepository, FolderRepository>();
+            services.AddTransient<IFileRepository, FileRepository>();
+            services.AddTransient<IItemRepository, ItemRepository>();
+            services.AddTransient<ISettingsRepository, SettingsRepository>();
+            services.AddTransient<IUserManageService, UserManageService>();
+            services.AddTransient<IStorageService, StorageService>();
+            services.AddTransient<IDataValidateService, DataValidateService>();
+            services.AddTransient<IDataService, DataService>();
+            services.AddTransient<ISettingsService, SettingsService>();
+            services.AddScoped<SharedDataLoad>();
+
             services.AddMvc();
+
+            services.AddAuthentication()
+                    .AddCookie();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

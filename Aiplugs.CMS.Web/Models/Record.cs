@@ -21,8 +21,6 @@ namespace Aiplugs.CMS.Web.Models
 
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTimeOffset CreatedAt { get; set; }
-
-    [ForeignKey(nameof(ItemId))]
     public virtual Item Item { get; set; }
 
     [NotMapped]

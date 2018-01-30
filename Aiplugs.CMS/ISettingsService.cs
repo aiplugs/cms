@@ -9,13 +9,14 @@ namespace Aiplugs.CMS
     Settings GetSettings();
     bool Validate(Settings settings);
     void Update(Settings settings);
-    IQueryable<Settings> GetHistory();
+    IEnumerable<Settings> GetHistory();
     
     IEnumerable<Collection> GetCollections();
-    Collection GetCollection(string collection);
+    Collection FindCollection(long id);
+    Collection GetCollection(string name);
     bool Validate(Collection collection);
-    long Add(Collection collection);
+    void Add(Collection collection);
     void Update(Collection collection);
-    IQueryable<Collection> GetHistory(long id);
+    IEnumerable<Collection> GetHistory(long id);
   }
 }

@@ -1,0 +1,132 @@
+@{
+  ViewData["Title"] = "Files | aiplugs";
+  ViewData.AddActivePage(SharedNavPages.Files);
+}
+<aiplugs-file-manager columns="name|lastModifiedAt"
+                      label-name="Name"
+                      label-size="File Size"
+                      label-last-modified-at="Last Update"
+                      label-last-modified-by="Last Update User">
+  <aiplugs-actions slot="top-actions">
+    <button class="btn">Uoload</button>
+    <button class="btn" id="new-folder">New Folder</button>
+    <button  class="btn one" id="rename">Rename</button>
+    <button  class="btn any" id="delete-items">Delete</button>
+  </aiplugs-actions>
+</aiplugs-file-manager>
+@section Scripts {
+  <script>
+    const endpoint = '@Url.Content("~/api")';
+    const folderUri = path => `${endpoint}/folders/${path||''}`;
+    const fileUri = path => `${endpoint}/files/${path||''}`;
+    const api = { folder: folderUri, file: fileUri };
+    const mgr = document.querySelector("aiplugs-file-manager");
+    const loadFolder = path => fetch(folderUri(path)).then(res => res.json()).then(data => {
+      const folders = data.folders.map(f => Object.assign({ 
+          type: 'folder', 
+          icon:'&#xf07b'
+        }, f, {
+          lastModifiedAt: new Date(f.lastModifiedAt).toLocaleString()                  
+        }));
+      const files = data.files.map(f => Object.assign({
+          type: 'file', 
+          icon: '&#xf016'
+        }, f, { 
+          lastModifiedAt:  new Date(f.lastModifiedAt).toLocaleString(),
+          size: (~~(f.size / 100)).toLocaleString() + ' kb'
+        }));
+      mgr.list.items = folders.concat(files);
+    }).catch(reason => {
+      alert('LOAD ERROR\n Cannot load the folder.');
+      console.log(reason);
+    })
+    const loadFile = path => fetch(fileUri(path)).then(res => res.blob()).then(blob => {
+      mgr.file.preview(blob);
+    }).catch(reason => {
+      alert('LOAD ERROR\n Cannot load the file.');
+      console.log(reason);
+    })
+    mgr.addEventListener('path.changed', e => {
+      loadFolder(e.detail.path.join('/'));
+    });
+    mgr.addEventListener('file.selected', e => {
+      loadFile(e.detail.path.join('/'));
+    });
+    document.getElementById('new-folder').addEventListener('click', e => {
+      const name = window.prompt('Name of new folder', 'New Folder');
+      const path = mgr.path.join('/');
+      if (name != null) {
+        fetch(folderUri(path), {
+          method: 'post', 
+          mode: 'cors',
+          headers: { 
+            'Content-Type': 'application/json'
+          }, 
+          body: JSON.stringify({name})
+        }).then(res => {
+          if (res.ok) {
+            mgr.reload();
+          }
+          else {
+            alert('CREATE ERROR\nCannot create new folder.')
+          }
+        });
+      }
+    })
+    document.getElementById('delete-items').addEventListener('click', e => {
+      const current = mgr.path;
+      const items = mgr.checkedItems.map(item => api[item.type](current.concat([item.name]).join('/')));
+      if (confirm('Really?')) {
+        Promise.all(items.map(uri => fetch(uri, { method: 'delete' })))
+        .then(arr => {
+          errs = arr.filter(res => !res.ok);
+          if (errs.length > 0) {
+            alert(`!!! ERROR !!!\n${res.errs.map(err => statusText).join('\n')}`)
+          }
+          mgr.reload();
+        });
+      }
+    })
+    document.getElementById('rename').addEventListener('click', e => {
+      const current = mgr.path;
+      const item = mgr.checkedItems[0];
+      const name = window.prompt('Name of new folder', item.name); 
+      if (name != null) {            
+        fetch(api[item.type](current.concat([item.name]).join('/')), { 
+          method: 'put',
+          mode: 'cors',
+          headers: { 
+            'Content-Type': 'application/json'
+          }, 
+          body: JSON.stringify({name})
+        }).then(res => {
+          if (res.ok) {
+            mgr.reload();
+          }
+          else {
+            alert(`!!! ERROR !!!\n${res.statusText}`)
+          }
+        });
+      }
+    })
+    mgr.addEventListener('drop', e => {
+      const formData = new FormData();
+      for(let file of e.detail.files) {
+        formData.append('files', file);
+      }
+      const path = mgr.path.join('/');              
+      fetch(fileUri(path), {
+        method: 'post', 
+        body: formData
+      }).then(res => {
+        if (res.ok) {
+          mgr.reload();
+        }
+        else {
+          alert(`!!! ERROR !!!\n${res.statusText}`)
+        }
+      });
+    })
+    mgr.move();
+  </script>
+}
