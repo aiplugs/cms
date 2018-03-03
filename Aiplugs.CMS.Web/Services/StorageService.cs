@@ -1,5 +1,6 @@
 using System.Linq;
 using Aiplugs.CMS.Web.Data;
+using Aiplugs.CMS.Web.Models;
 using Aiplugs.CMS.Web.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,11 @@ namespace Aiplugs.CMS.Web.Services
       var fileName = _path.Last();
 
       return folder.Files.Where(f => f.Name == fileName).FirstOrDefault();
+    }
+
+    public IFile LoadFile(IFile file)
+    {
+      return files.LoadBinary(file);
     }
 
     public IFolder GetFolder(string path)

@@ -4,6 +4,7 @@ namespace Aiplugs.CMS {
     IFolder GetHome();    
     IFolder GetFolder(string path);
     IFile GetFile(string path);
+    byte[] LoadFile(IFile file);
 
     void Add(IFolder parent, string name);
     void Add(IFolder folder, string name, string contentType, byte[] binary);

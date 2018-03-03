@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -20,6 +21,8 @@ namespace Aiplugs.CMS
 
     [JsonProperty("schema")]
     public string Schema { get; set; }
+
+    public IEnumerable<Procedure> Procedures { get; set; }
 
     public string GetDisplayName()
     {

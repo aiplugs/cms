@@ -38,7 +38,11 @@ namespace Aiplugs.CMS.Web.Repositories
     {
       return db.Folders
         .Include(f => f.Children)
-        .Include(f => f.Files)
+        .Include(f => f.Files.Select(_ => _.Name))
+        .Include(f => f.Files.Select(_ => _.ContentType))
+        .Include(f => f.Files.Select(_ => _.Size))
+        .Include(f => f.Files.Select(_ => _.LastModifiedAt))
+        .Include(f => f.Files.Select(_ => _.LastModifiedBy))
         .Where(f => f.Id == id)
         .FirstOrDefault();
     }

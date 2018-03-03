@@ -37,6 +37,32 @@
       },
       "default": "{\n  \"$schema\": \"http://schemas.aiplugs.com/cms/2017-10-27/root.json#\",\n  \"properties\": {\n  }\n}",
       "required": true
+    },
+    "procedures": {
+      "type": "array",
+      "title": "Procedures",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "pattern": "[a-zA-Z0-9 ]+"
+          },
+          "dllPath": {
+            "type": "string",
+            "title": "Dll Path"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type Name"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method Name"
+          }
+        }
+      }
     }
   }
 }

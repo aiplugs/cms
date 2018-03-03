@@ -29,6 +29,10 @@ namespace Aiplugs.CMS.Web.Repositories
     {
       return db.Files.Find(id);
     }
+    public byte[] LoadBinary(IFile file)
+    {
+      return Find(((File)file).Id)?.Binary;
+    }
 
     public void Remove(IFile file)
     {

@@ -22,7 +22,8 @@ namespace Aiplugs.CMS.Web.Api {
     public dynamic Get(string id)
     {
       var file = _storage.GetFile(id);
-      return File(file.Binary, file.ContentType);
+      var binary = _storage.LoadFile(file);
+      return File(binary, file.ContentType);
     }
 
     [HttpPost("{*id}")]
