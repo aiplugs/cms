@@ -1,5 +1,6 @@
 using Aiplugs.Functions.Core;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Aiplugs.CMS.Core
 {
@@ -9,6 +10,11 @@ namespace Aiplugs.CMS.Core
         {
             var services = app.ApplicationServices;
             
+            var migration = services.GetRequiredService<IMigration>();
+
+            if (migration.NeedMigrate())
+                migration.Migrate();
+
             app.UseAiplugsFunctions<IContextParameters>();
 
             return app;

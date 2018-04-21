@@ -5,7 +5,7 @@ using Aiplugs.CMS.Core.Query;
 using Newtonsoft.Json.Linq;
 
 namespace Aiplugs.CMS.Core.Data {
-    public abstract class SettingsRepository : ISettingsRepository
+    public class SettingsRepository : ISettingsRepository
     {
         private const string COLLECTIONS = "__collections__";
         private const string SETTINGS = "__settings__";

@@ -29,18 +29,20 @@ namespace Aiplugs.CMS.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options => 
-                options.UseInMemoryDatabase("Aiplugs:Function:Sample"));
+                options.UseInMemoryDatabase("Aiplugs:CMS:Web"));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddHttpClient();
+            
             services.AddSingleton(SampleDb.Instance);
             
             services.AddAiplugsCMS(opts => opts.UseSqlite().ForceMigration());
 
             services.AddScoped<SharedDataLoad>();
-
+            
             services.AddMvc();
         }
 
@@ -54,7 +56,7 @@ namespace Aiplugs.CMS.Web
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Default/Error");
             }
 
             app.UseStaticFiles();
@@ -65,7 +67,7 @@ namespace Aiplugs.CMS.Web
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Default}/{action=Index}/{id?}");
             });
 
             app.UseAiplugsCMS();

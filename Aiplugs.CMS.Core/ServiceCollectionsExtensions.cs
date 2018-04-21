@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using Aiplugs.CMS.Core.Data;
+using Aiplugs.CMS.Core.Models;
 using Aiplugs.CMS.Core.Services;
 using Aiplugs.Functions.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ namespace Aiplugs.CMS.Core
             services.AddTransient<IDataRepository>(provider => opts.DataRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
             services.AddTransient<IFolderRepository>(provider => opts.FolderRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
             services.AddTransient<IFileRepository>(provider => opts.FileRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
+            services.AddTransient<ISettingsRepository, SettingsRepository>();
+            services.AddTransient<IAppConfiguration, AppConfiguration>();
             services.AddTransient<IContextFactory<IContextParameters>, ContextFactory>();
             services.AddTransient<ILockService, LockService>();
             services.AddTransient<IUserResolver, CurrentUserResolver>();
