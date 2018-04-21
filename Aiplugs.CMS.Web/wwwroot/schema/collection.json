@@ -53,13 +53,9 @@
             "type": "string",
             "title": "Dll Path"
           },
-          "type": {
+          "typeName": {
             "type": "string",
             "title": "Type Name"
-          },
-          "method": {
-            "type": "string",
-            "title": "Method Name"
           }
         }
       }

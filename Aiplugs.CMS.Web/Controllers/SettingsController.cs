@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
-    // [Authorize]
+    [Authorize]
     [Route("settings")]
     [ServiceFilter(typeof(SharedDataLoad))]
     public class SettingsController : Controller

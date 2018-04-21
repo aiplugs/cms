@@ -8,9 +8,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
+    [Authorize]
     [Route("collections")]
     [ServiceFilter(typeof(SharedDataLoad))]
-    [Authorize]
     public class CollectionsController : Controller
     {
         private readonly ISettingsService _settings;
