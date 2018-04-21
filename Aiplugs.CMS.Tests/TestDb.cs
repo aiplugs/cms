@@ -79,9 +79,9 @@ namespace Aiplugs.CMS.Tests
     {
         public IDbConnection Instance { get; }
 
-        public IDataRepository DataRepository { get { return new Core.Data.Sqlite.DataRepository(Instance, new Core.Data.Sqlite.QueryBuilder()); } }
-        public IFileRepository FileRepository { get { return new Core.Data.Sqlite.FileRepository(Instance); } }
-        public IFolderRepository FolderRepository { get { return new Core.Data.Sqlite.FolderRepository(Instance); } }
+        public override IDataRepository DataRepository { get { return new Core.Data.Sqlite.DataRepository(Instance, new Core.Data.Sqlite.QueryBuilder()); } }
+        public override IFileRepository FileRepository { get { return new Core.Data.Sqlite.FileRepository(Instance); } }
+        public override IFolderRepository FolderRepository { get { return new Core.Data.Sqlite.FolderRepository(Instance); } }
 
         public SqlServerTestDb(string connectionString, bool migration = true)
         {
