@@ -108,7 +108,7 @@ namespace Aiplugs.CMS.Core.Services
                 await CopyIfNeed(file, dir);
             }
 
-            return new CustomProcedure(Path.Combine(dir, tail), procedure.Method);
+            return new CustomProcedure(Path.Combine(dir, tail), procedure.TypeName);
         }
         public async Task CopyIfNeed(IFile file, string dir)
         {

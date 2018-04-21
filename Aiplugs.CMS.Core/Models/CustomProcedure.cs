@@ -9,12 +9,12 @@ namespace Aiplugs.CMS.Core.Models
     public class CustomProcedure : Aiplugs.Functions.Core.IProcedure
     {
         public string Path { get; }
-        public string Method { get; }
+        public string TypeName { get; }
 
-        public CustomProcedure(string path, string method)
+        public CustomProcedure(string path, string typeName)
         {
             Path = path;
-            Method = method;
+            TypeName = typeName;
         }
         public void Execute(IContext context)
         {
@@ -23,18 +23,12 @@ namespace Aiplugs.CMS.Core.Models
             var refrence = asm.GetReferencedAssemblies().Where(a => a.Name == lib.Name).FirstOrDefault();
 
             if (refrence == null)
-                throw new InvalidOperationException($"'{Method}' doesn't have dependence to Context.");
+                throw new InvalidOperationException($"'{TypeName}' doesn't have dependence to Context.");
 
             if (refrence.FullName != lib.FullName)
                 throw new InvalidOperationException($"Context versions are not match.");
 
-            var index = Method.LastIndexOf(".");
-            if (index < 0)
-                throw new ArgumentException($"{nameof(Method)} property is invalid.");
-            
-            var ns = Method.Substring(0, index);
-            var name = Method.Substring(index + 1);
-            var type = Type.GetType($"{ns}, {asm.FullName}");
+            var type = Type.GetType($"{TypeName}, {asm.FullName}");
 
             var instance = Activator.CreateInstance(type) as IProcedure;
             

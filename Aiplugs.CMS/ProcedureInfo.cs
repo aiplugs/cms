@@ -4,7 +4,6 @@ namespace Aiplugs.CMS
   {
     public string Name { get; set; }
     public string DllPath { get; set; }
-    public string Type { get; set; }
-    public string Method { get; set; }
+    public string TypeName { get; set; }
   }
 }
