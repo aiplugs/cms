@@ -22,7 +22,7 @@ namespace Aiplugs.CMS
     [JsonProperty("schema")]
     public string Schema { get; set; }
 
-    public IEnumerable<Procedure> Procedures { get; set; }
+    public IEnumerable<ProcedureInfo> Procedures { get; set; }
 
     public string GetDisplayName()
     {

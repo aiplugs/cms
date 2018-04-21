@@ -4,8 +4,8 @@ namespace Aiplugs.CMS
 {
   public interface IFolder
   {
+    long Id { get; set; }
     string Name { get; }
-    ICollection<IFolder> Children { get; }
-    ICollection<IFile> Files { get; }
+    string Path { get; }
   }
 }

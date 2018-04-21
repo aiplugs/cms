@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Aiplugs.CMS.Web.Services;
+using System.Threading.Tasks;
 using Aiplugs.CMS.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -12,18 +12,16 @@ namespace Aiplugs.CMS.Web.Api
   {
     private readonly ISettingsService _settings;
     private readonly IDataService _data;
-    private readonly IDataValidateService _validator;
-    public DataController(ISettingsService settingsService,IDataService dataService, IDataValidateService dataValidateService) 
+    public DataController(ISettingsService settingsService,IDataService dataService) 
     {
       _settings = settingsService;
       _data = dataService;
-      _validator = dataValidateService;
     }
     
     [HttpGet("{name}")]
-    public IActionResult Get(string name, bool desc = true, long? skipToken = null, int limit = 20) 
+    public async Task<IActionResult> Get(string name, bool desc = true, long? skipToken = null, int limit = 20) 
     {
-      var query = _data.GetItems(name);
+      var query = await _data.SearchAsync(name);
       
       if (desc)
         query = query.OrderByDescending(item => item.Id);      
@@ -45,9 +43,9 @@ namespace Aiplugs.CMS.Web.Api
       });
     }
     [HttpGet("{name}/{id}")]
-    public IActionResult Get(string name, long id)
+    public async Task<IActionResult> Get(string name, long id)
     {
-      var data = _data.Find(id);
+      var data = await _data.LookupAsync(id);
       if (data == null)
         return NotFound();
 
@@ -55,26 +53,26 @@ namespace Aiplugs.CMS.Web.Api
     }
 
     [HttpPost("{name}")]
-    public IActionResult Post(string name, [FromBody]JObject model)
+    public async Task<IActionResult> Post(string name, [FromBody]JObject model)
     {
-      if (_validator.ValidateCollection(name, model) == false)
+      if ((await _data.ValidateAsync(name, model)) == false)
         return BadRequest();
       
-      var id = _data.Add(name, model);
+      var id = await _data.AddAsync(name, model);
 
       return Created(Url.Action("Data", "Collections", new {id}), null);
     }
 
     [HttpPut("{name}")]
-    public IActionResult Put(string name, long id, [FromBody]JObject model)
+    public async Task<IActionResult> Put(string name, long id, [FromBody]JObject model)
     {
-      if (_validator.ValidateCollection(name, model) == false)
+      if ((await _data.ValidateAsync(name, model)) == false)
         return BadRequest();
 
-      if (_data.Find(id) == null)
+      if ((await _data.LookupAsync(id)) == null)
         return NotFound();
 
-      _data.Update(id, model);
+      await _data.UpdateAsync(id, model);
 
       return NoContent();
     }

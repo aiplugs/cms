@@ -1,28 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <UserSecretsId>aspnet-Aiplugs.CMS.Web-9D753768-10BE-4B11-8233-B37A71EA98A1</UserSecretsId>
   </PropertyGroup>
+<!--   
   <ItemGroup>
     <None Update="app.db" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+  </ItemGroup> -->
+
   <ItemGroup>
     <ProjectReference Include="../Aiplugs.CMS/Aiplugs.CMS.csproj" />
-    <ProjectReference Include="../Aiplugs.CMS.Functions/Aiplugs.CMS.Functions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0" PrivateAssets="All" />
-    <PackageReference Include="Pidgin" Version="1.4.0" />
+    <ProjectReference Include="../Aiplugs.CMS.Core/Aiplugs.CMS.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.0" />
-    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.0" />
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.0-preview2-final" />
   </ItemGroup>
 
 </Project>

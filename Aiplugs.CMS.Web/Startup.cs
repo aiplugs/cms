@@ -10,10 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Aiplugs.CMS.Web.Data;
 using Aiplugs.CMS.Web.Models;
-using Aiplugs.CMS.Web.Services;
-using Aiplugs.CMS.Web.Repositories;
 using Aiplugs.CMS.Web.Filters;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Aiplugs.CMS.Core;
 
 namespace Aiplugs.CMS.Web
 {
@@ -29,35 +28,24 @@ namespace Aiplugs.CMS.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDbContext>(options => 
+                options.UseInMemoryDatabase("Aiplugs:Function:Sample"));
 
-            services.AddIdentity<ApplicationUser, ApplicationRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            // Add application services.
-            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddSingleton(SampleDb.Instance);
+            
+            services.AddAiplugsCMS(opts => opts.UseSqlite().ForceMigration());
 
-            services.AddTransient<IFolderRepository, FolderRepository>();
-            services.AddTransient<IFileRepository, FileRepository>();
-            services.AddTransient<IItemRepository, ItemRepository>();
-            services.AddTransient<ISettingsRepository, SettingsRepository>();
-            services.AddTransient<IUserManageService, UserManageService>();
-            services.AddTransient<IStorageService, StorageService>();
-            services.AddTransient<IDataValidateService, DataValidateService>();
-            services.AddTransient<IDataService, DataService>();
-            services.AddTransient<ISettingsService, SettingsService>();
             services.AddScoped<SharedDataLoad>();
 
             services.AddMvc();
-
-            services.AddAuthentication()
-                    .AddCookie();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
             {
@@ -79,6 +67,10 @@ namespace Aiplugs.CMS.Web
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            app.UseAiplugsCMS();
+
+            lifetime.ApplicationStopped.Register(() => SampleDb.CloseAndDispose());
         }
     }
 }

@@ -7,81 +7,98 @@ using Aiplugs.CMS.Web.ViewModels.StorageViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Aiplugs.CMS.Web.Api {
-  
-  [Route("api/[controller]")]
-  public class FilesController : Controller
-  {
-    private IStorageService _storage;
-    public FilesController(IStorageService storage)
-    {
-      _storage = storage;
-    }
+namespace Aiplugs.CMS.Web.Api
+{
 
-    [HttpGet("{*id}")]
-    public dynamic Get(string id)
+    [Route("api/[controller]")]
+    public class FilesController : Controller
     {
-      var file = _storage.GetFile(id);
-      var binary = _storage.LoadFile(file);
-      return File(binary, file.ContentType);
-    }
-
-    [HttpPost("{*id}")]
-    public async Task<IActionResult> Post(string id, IEnumerable<IFormFile> files)
-    {
-      var folder = _storage.GetFolder(id);
-      var errors = new List<string>();
-      foreach (var file in files.Where(f => f.Length > 0))
-      {
-        if (folder.Files.Any(f => f.Name == file.Name))
+        private IStorageService _storage;
+        public FilesController(IStorageService storage)
         {
-          errors.Add(file.FileName);
-          continue;
+            _storage = storage;
         }
-        else
+
+        [HttpGet("{*path}")]
+        public async Task<IActionResult> Get(string path)
         {
-          using (var stream = new MemoryStream())
-          {
-            await file.CopyToAsync(stream);
-            try
-            {
-              _storage.Add(folder, file.FileName, file.ContentType, stream.ToArray());
-            }
-            catch (Exception)
-            {
-              errors.Add(file.FileName);
-            }
-          }
+            var file = await _storage.FindFileAsync(path);
+
+            if (file == null)
+                return NotFound();
+
+            return File(_storage.OpenFile(file), file.ContentType);
         }
-      }
-      return Ok(new { count = files.Count() - errors.Count, size = files.Sum(f => f.Length), errors });
+
+        [HttpPost("{*path}")]
+        public async Task<IActionResult> Post(string path, IEnumerable<IFormFile> files)
+        {
+            var folder = await _storage.FindFolderAsync(path);
+            if (folder == null)
+                return NotFound();
+
+            var children = await _storage.GetFilesAsync(folder);
+            var errors = new List<string>();
+            foreach (var file in files.Where(f => f.Length > 0))
+            {
+                if (children.Any(f => f.Name == file.Name))
+                {
+                    errors.Add(file.FileName);
+                    continue;
+                }
+                else
+                {
+                    try
+                    {
+                        using (var stream = file.OpenReadStream())
+                        {
+                            await _storage.AddFileAsync(folder, file.FileName, file.ContentType, stream);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        errors.Add(file.FileName);
+                    }
+                }
+            }
+            return Ok(new FileUploadViewModel
+            { 
+                Count = files.Count() - errors.Count,
+                Size = files.Sum(f => f.Length), 
+                Errors = errors
+            });
+        }
+
+        [HttpPut("{*path}")]
+        public async Task<IActionResult> Patch(string path, [FromBody]RenameViewModel model)
+        {
+            if (ModelState.IsValid == false)
+                return BadRequest(ModelState);
+
+            var file = await _storage.FindFileAsync(path);
+            if (file == null)
+                return NotFound();
+
+            var dst = await _storage.FindFolderAsync(model.Destination);
+
+            if (dst == null)
+                return NotFound();
+
+            await _storage.MoveAsync(file, dst, model.Name);
+
+            return Ok();
+        }
+
+        [HttpDelete("{*path}")]
+        public async Task<IActionResult> Delete(string path)
+        {
+            var file = await _storage.FindFileAsync(path);
+            if (file == null)
+                return NotFound();
+
+            await _storage.RemoveAsync(file);
+
+            return Ok();
+        }
     }
-
-    [HttpPut("{*id}")]
-    public IActionResult Put(string id, [FromBody]RenameViewModel model)
-    {
-      if (ModelState.IsValid == false)
-        return BadRequest(ModelState);
-
-      var file = _storage.GetFile(id);
-      if (file == null)
-        return NotFound();
-
-      _storage.Rename(file, model.Name);
-
-      return Ok();
-    }
-
-    [HttpDelete("{*id}")]
-    public IActionResult Delete(string id)
-    {
-      var file = _storage.GetFile(id);
-      if (file == null)
-        return NotFound();
-
-      _storage.Remove(file);
-
-      return Ok();
-    }
-  }
 }

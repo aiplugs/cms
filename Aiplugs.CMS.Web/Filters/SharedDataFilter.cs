@@ -14,7 +14,7 @@ namespace Aiplugs.CMS.Web.Filters
     public override void OnActionExecuting(ActionExecutingContext context)
     {
       var controller = context.Controller as Controller;
-      controller.ViewBag.Collections = _settings.GetCollections();
+      controller.ViewBag.Collections = _settings.GetCollectionsAsync().Result;
 
     } 
   }
