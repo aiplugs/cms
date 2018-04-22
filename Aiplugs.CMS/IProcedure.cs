@@ -4,6 +4,6 @@ namespace Aiplugs.CMS
 {
     public interface IProcedure
     {
-        Task Execute(IContext context);
+        Task ExecuteAsync(IContext context);
     }
 }

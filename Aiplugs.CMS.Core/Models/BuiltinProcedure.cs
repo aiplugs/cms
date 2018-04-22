@@ -17,7 +17,7 @@ namespace Aiplugs.CMS.Core.Models
             if (instance == null)
                 throw new ArgumentException(nameof(Type), "The type is not implemented Aiplugs.CMS.IProcedure");
             
-            instance.Execute(context).Wait(context.CancellationToken);
+            instance.ExecuteAsync(context).Wait(context.CancellationToken);
         }
         public MethodInfo CreateMethod()
         {

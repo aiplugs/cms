@@ -7,7 +7,7 @@ namespace Aiplugs.CMS.Core.Functions
 {
     public class ValidateProcedure : IProcedure
     {
-        public async Task Execute(IContext context)
+        public async Task ExecuteAsync(IContext context)
         {
             var collection = context.Parameters.CollectionName;
             await context.Cursor(async item => {
