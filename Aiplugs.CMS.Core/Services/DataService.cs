@@ -31,14 +31,19 @@ namespace Aiplugs.CMS.Core.Services
             return await _repository.AddAsync(collectionName, data, userId);
         }
 
-        public async Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, int limit = 100)
+        public async Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, long? skipToken = null, int limit = 100)
         {
-            return await _repository.GetEventsAsync(collectionName, from, limit);
+            return await _repository.GetEventsAsync(collectionName, from, skipToken, limit);
         }
 
         public async Task<IEnumerable<IRecord>> GetHistoryAsync(long id, long? skipToken = null, int limit = 100)
         {
             return await _repository.GetHistoryAsync(id, skipToken, limit);
+        }
+
+        public async Task<IRecord> GetRecordThenAsync(long id, DateTime then)
+        {
+            return await _repository.GetRecordThenAsync(id, then);
         }
 
         public async Task<IItem> LookupAsync(long id)

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Aiplugs.CMS.Core.Data;
 using Aiplugs.CMS.Core.Query;
+using Aiplugs.CMS.Core.Services;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -115,12 +117,33 @@ namespace Aiplugs.CMS.Tests
                 await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
                 await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
 
-                var events = (await repo.GetEventsAsync("test", pivot, 100)).ToArray();
+                var events = (await repo.GetEventsAsync("test", pivot, null, 100)).ToArray();
 
-                Assert.Equal(3, events.Length);
+                Assert.Equal(1, events.Length);
                 Assert.True(events[0] is CreateEvent);
-                Assert.True(events[1] is UpdateEvent);
-                Assert.True(events[2] is UpdateEvent);
+            });
+        }
+
+        [Fact]
+        public async Task Data_GetRecordThenAsync()
+        {
+            await All<IDataRepository>(async repo => 
+            {
+                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester1");
+                
+                Assert.True(id > 0);
+
+                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
+
+                var pivot = DateTime.UtcNow;            
+                
+                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
+
+                var record = await repo.GetRecordThenAsync(id, pivot);
+                
+                Assert.NotNull(record);
+                Assert.Equal("tester2", record.CreatedBy);
+                Assert.Equal("Hello, World!!", record.Data["Text"]);
             });
         }
 

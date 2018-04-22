@@ -44,7 +44,7 @@ namespace Aiplugs.CMS.Core.Data
         public abstract Task<IEnumerable<IItem>> QueryAsync(string collectionName, IQuery query, bool desc, long? skipToken, int limit);
         public abstract Task<IEnumerable<IRecord>> GetHistoryAsync(long id, long? skipToken, int limit);
 
-        public abstract Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, int limit);
+        public abstract Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, long? skipToken, int limit);
 
         public async Task<IItem> LookupAsync(long id)
         {
@@ -74,6 +74,34 @@ namespace Aiplugs.CMS.Core.Data
                     UpdatedAt = item.UpdatedAt,
                     UpdatedBy = item.UpdatedBy,
                     IsValid = item.IsValid,
+                };
+            });
+        }
+
+        public async Task<IRecord> GetRecordThenAsync(long id, DateTime then)
+        {
+            return await _db.NonTransactionalAsync(async() => {
+                var record = await _db.QuerySingleOrDefaultAsync<DbRecord>(
+                    @"SELECT Id,
+                             ItemId,
+                             Data,
+                             CreatedAt,
+                             CreatedBy
+                        FROM Records
+                    WHERE CreatedAt <= @Then
+                    ORDER BY Id DESC
+                    LIMIT 1", new { Id = id, Then = then });
+
+                if (record == null)
+                    return null;
+                
+                return new Record 
+                {
+                    Id = record.Id,
+                    ItemId = record.ItemId,
+                    Data = JObject.Parse(record.Data),
+                    CreatedAt = record.CreatedAt,
+                    CreatedBy = record.CreatedBy
                 };
             });
         }

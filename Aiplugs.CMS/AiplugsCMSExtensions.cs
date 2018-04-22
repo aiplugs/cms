@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JsonDiffPatchDotNet;
+using Newtonsoft.Json.Linq;
 
 namespace Aiplugs.CMS
 {
@@ -55,6 +57,32 @@ namespace Aiplugs.CMS
                     await action(datum);
 
             } while(data.Count() == batchSize);
+        }
+
+        public static async Task<DateTime> CursorEvents(this IDataService service, string collection, DateTime from, Func<Event, Task> action, int batchSize = 1000)
+        {
+            IEnumerable<Event> events = null;
+            long? skipToken = null;
+            DateTime? end = null;
+            DateTime start = DateTime.UtcNow;          
+            do {
+                skipToken = events?.LastOrDefault()?.Id;
+                events = await service.GetEventsAsync(collection, from, skipToken, batchSize);
+                
+                foreach(var ev in events)
+                    await action(ev);
+
+                end = events.LastOrDefault()?.TrackAt;
+            } while(events.Count() == batchSize);
+
+            return new DateTime(Math.Max(start.Ticks, end?.Ticks ?? 0), DateTimeKind.Utc);
+        }
+
+        public static JToken Diff(this IItem item, IRecord record)
+        {
+            var differ = new JsonDiffPatch();
+
+            return differ.Diff(record.Data, item.Data);
         }
     }
 }

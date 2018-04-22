@@ -139,21 +139,26 @@ namespace Aiplugs.CMS.Core.Data.Sqlite
             });
         }
 
-        public override async Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, int limit)
+        public override async Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, long? skipToken, int limit)
         {
-            return await _db.NonTransactionalAsync(async() => {
-                var items = await _db.QueryAsync<DbItem>(
-                    @"SELECT i.Id AS Id,
-                             i.CreatedAt AS CreatedAt,
-                             r.CreatedAt AS UpdatedAt
-                        FROM Items AS i
-                    INNER JOIN Records AS r 
-                        ON i.Id = r.ItemId
-                    WHERE i.CollectionName = @CollectionName AND r.CreatedAt >= @From
-                    LIMIT @Limit", 
-                    new { CollectionName = collectionName, From = from, Limit = limit });
+            var sql = @"SELECT i.Id AS Id,
+                               i.CreatedAt AS CreatedAt,
+                               MIN(r.CreatedAt) AS UpdatedAt
+                            FROM Records AS r
+                        INNER JOIN Items AS i 
+                            ON i.Id = r.ItemId
+                        WHERE i.CollectionName = @CollectionName AND r.CreatedAt >= @From ";
 
-                return items.Select<dynamic,Event>(item => {
+            if (skipToken.HasValue)
+                sql += " AND i.Id > @SkipToken";
+
+            sql += "\nGROUP BY i.Id";
+            sql += "\nLIMIT @Limit";
+
+            return await _db.NonTransactionalAsync(async() => {
+                var items = await _db.QueryAsync<DbItem>(sql, new { CollectionName = collectionName, From = from, SkipToken = skipToken, Limit = limit });
+
+                return items.Select<DbItem,Event>(item => {
                     if (item.UpdatedAt == item.CreatedAt)
                         return new CreateEvent(item.Id, item.UpdatedAt);
 

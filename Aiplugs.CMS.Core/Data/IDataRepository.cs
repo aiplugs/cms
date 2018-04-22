@@ -12,7 +12,8 @@ namespace Aiplugs.CMS.Core.Data
         Task<IEnumerable<IItem>> GetAsync(string collectionName, string keyword, bool desc, long? skipToken, int limit);
         Task<IEnumerable<IItem>> QueryAsync(string collectionName, IQuery query, bool desc, long? skipToken, int limit);
         Task<IEnumerable<IRecord>> GetHistoryAsync(long id, long? skipToken, int limit);
-        Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, int limit);
+        Task<IRecord> GetRecordThenAsync(long id, DateTime then);
+        Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, long? skipToken, int limit);
         Task<long> AddAsync(string collectionName, JObject data, string userId);
         Task UpdateAsync(long id, JObject data, string userId);
         Task SetStatusAsync(long id, bool isValid);
