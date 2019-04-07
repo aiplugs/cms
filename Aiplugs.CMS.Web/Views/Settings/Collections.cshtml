@@ -4,18 +4,21 @@
   ViewData.AddActivePage(SharedNavPages.Settings.Collections);
 }
 
-<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
-<header>
-  <a asp-controller="Settings" asp-action="NewCollection" class="btn btn-primary"><i class="fa fa-plus"></i>New</a>
-</header>
-<div>
-  <ul>
-    @foreach(var collection in Model) 
-    {
-      <li>
-        <a asp-controller="Settings" asp-action="Collection" asp-route-name="@collection.Name">@collection.GetDisplayName()</a>
-      </li>
-    }
-  <ul>
-</div>
-
+<aiplugs-blade label="Collections">
+    <aiplugs-actions>
+        <a asp-controller="Settings" asp-action="NewCollection" is="aiplugs-button" looks="block">Create New</a>
+    </aiplugs-actions>
+    <aiplugs-list label-name="Collection Name*" label-last-modified="Last Modified">
+        @foreach (var collection in Model)
+        {
+            <aiplugs-list-item>
+                <aiplugs-list-column class="flex">
+                    <a asp-controller="Settings" asp-action="Collection" asp-route-name="@collection.Name">@collection.GetDisplayName()</a>
+                </aiplugs-list-column>
+                <aiplugs-list-column class="text-small">
+                    @DateTimeOffset.MinValue.ToLocalTime().DateTime
+                </aiplugs-list-column>
+            </aiplugs-list-item>
+        }
+    </aiplugs-list>
+</aiplugs-blade>

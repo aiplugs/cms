@@ -1,0 +1,29 @@
+﻿@model (IItem Item, Collection Collection)
+@{
+    Layout = null;
+    var title = (string)Model.Item.Data?.SelectToken(Model.Collection.TitlePath);
+}
+<html>
+    <body>
+        <h1>@title</h1>
+        <pre>@Model.Item.Data?.ToString(Newtonsoft.Json.Formatting.Indented)</pre>
+        <table class="table">
+            <tr>
+                <th>Last Modified At</th>
+                <td>@Model.Item.UpdatedAt</td>
+            </tr>
+            <tr>
+                <th>Last Modified By</th>
+                <td>@Model.Item.UpdatedBy</td>
+            </tr>
+            <tr>
+                <th>Created At</th>
+                <td>@Model.Item.CreatedAt</td>
+            </tr>
+            <tr>
+                <th>Created By</th>
+                <td>@Model.Item.CreatedBy</td>
+            </tr>
+        </table>
+    </body>
+</html>

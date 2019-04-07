@@ -58,7 +58,7 @@ namespace Aiplugs.CMS.Web.Api
         }
 
         [HttpPut("{*path}")]
-        public async Task<IActionResult> Patch(string path, [FromBody]RenameViewModel model)
+        public async Task<IActionResult> Patch(string path, [FromBody]MoveViewModel model)
         {
             if (ModelState.IsValid == false)
                 return BadRequest(ModelState);

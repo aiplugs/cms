@@ -1,7 +1,7 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Aiplugs.Functions;
 
 namespace Aiplugs.CMS.Core.Models
 {
@@ -9,7 +9,7 @@ namespace Aiplugs.CMS.Core.Models
     {
         public ILogger Logger { get; set; }
 
-        public IList<Error> Errors { get; set; }
+        public IList<Error> Errors { get; set; } = new List<Error>();
 
         public CancellationToken CancellationToken { get; set; }
 

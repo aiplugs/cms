@@ -8,7 +8,7 @@ namespace Aiplugs.CMS
   public class Collection
   {
     [JsonProperty("id")]
-    public long Id { get; set; }
+    public string Id { get; set; }
 
     [JsonProperty("name")]    
     public string Name { get; set; }
@@ -18,6 +18,12 @@ namespace Aiplugs.CMS
 
     [JsonProperty("displayOrder")]
     public int DisplayOrder { get; set; } 
+
+    [JsonProperty("titlePath")]
+    public string TitlePath { get; set; }
+
+    [JsonProperty("previewTemplate")]
+    public string PreviewTemplate { get; set; }
 
     [JsonProperty("schema")]
     public string Schema { get; set; }

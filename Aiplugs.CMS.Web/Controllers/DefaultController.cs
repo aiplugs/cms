@@ -19,6 +19,7 @@ namespace Aiplugs.CMS.Web.Controllers
         public IActionResult Index()
         {
             return View();
+            
         }
         public IActionResult Error()
         {

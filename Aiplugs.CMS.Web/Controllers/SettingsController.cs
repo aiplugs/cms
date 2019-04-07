@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Aiplugs.CMS.Web.Filters;
+using Aiplugs.CMS.Web.ViewModels.SettingsViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -36,32 +37,49 @@ namespace Aiplugs.CMS.Web.Controllers
         [HttpGet("collections/@new")]
         public IActionResult NewCollection()
         {
-            return View("Collection", new Collection());
+            return View("Collection", new CollectionViewModel());
         }
 
         [HttpGet("collections/{name}")]
         public async Task<IActionResult> Collection(string name)
         {
             var collection = await _settingsService.FindCollectionAsync(name);
-            return View(collection);
+            return View(new CollectionViewModel
+            {
+                Name = collection.Name,
+                Schema = collection.Schema,
+                TitlePath = collection.TitlePath,
+                PreviewTemplate = collection.PreviewTemplate,
+                DisplayName = collection.DisplayName,
+                DisplayOrder = collection.DisplayOrder,
+                Procedures = collection.Procedures
+            });
         }
 
         [HttpPost("collections/@new")]
-        public async Task<IActionResult> AppendCollection([FromForm]Collection collection)
+        public async Task<IActionResult> AppendCollection([FromForm]CollectionViewModel model)
         {
-            if ((await _settingsService.ValidateAsync(collection)) == false)
-                return BadRequest();
+            var collection = new Collection
+            {
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                DisplayOrder = model.DisplayOrder,
+                TitlePath = model.TitlePath,
+                PreviewTemplate = model.PreviewTemplate,
+                Schema = model.Schema,
+                Procedures = model.Procedures
+            };
 
             await _settingsService.AddAsync(collection);
 
-            return RedirectToAction("collections");
+            return RedirectToAction(nameof(Collections));
         }
 
         [HttpPost("collections/{name}")]
         public async Task<IActionResult> UpdateCollection(string name, [FromForm]Collection collection)
         {
-            if ((await _settingsService.ValidateAsync(collection)) == false)
-                return BadRequest();
+            if (!ModelState.IsValid)
+                return View(collection);
 
             await _settingsService.UpdateAsync(collection);
 

@@ -8,15 +8,15 @@ namespace Aiplugs.CMS
 {
     public interface IDataService
     {
-        Task<IEnumerable<IItem>> SearchAsync(string collectionName, string keyword = null, long? skipToken = null, int limit = 100, bool desc = true);
-        Task<IEnumerable<IItem>> QueryAsync(string collectionName, string query, long? skipToken = null, int limit = 100, bool desc = true);
-        Task<IItem> LookupAsync(long id);
-        Task<long> AddAsync(string collectionName, JObject data);
-        Task UpdateAsync(long id, JObject data);
-        Task<IEnumerable<IRecord>> GetHistoryAsync(long id, long? skipToken = null, int limit = 100);
-        Task<IRecord> GetRecordThenAsync(long id, DateTime then);
-        Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTime from, long? skipToken = null, int limit = 100);
-        Task<bool> ValidateAsync(string collectionName, JObject data);
-        Task SetStatusAsync(long id, bool isValid);
+        Task<IEnumerable<IItem>> SearchAsync(string collectionName, string keyword = null, string skipToken = null, int limit = 100, bool desc = true);
+        Task<IEnumerable<IItem>> QueryAsync(string collectionName, string query, string skipToken = null, int limit = 100, bool desc = true);
+        Task<IItem> LookupAsync(string id);
+        Task<string> AddAsync(string collectionName, JToken data);
+        Task UpdateAsync(string id, JToken data, string currentId);
+        Task<IEnumerable<IRecord>> GetHistoryAsync(string id, string skipToken = null, int limit = 100);
+        Task<IRecord> GetRecordThenAsync(string id, DateTime then);
+        Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTimeOffset from, string skipToken = null, int limit = 100);
+        Task<bool> ValidateAsync(string collectionName, JToken data);
+        Task SetStatusAsync(string id, bool isValid, string currentId);
     }
 }

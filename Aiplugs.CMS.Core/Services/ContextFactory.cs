@@ -1,21 +1,21 @@
 using System;
 using System.Threading;
-using Aiplugs.CMS.Core.Data;
 using Aiplugs.CMS.Core.Models;
-using Aiplugs.Functions;
-using Aiplugs.Functions.Core;
+using Aiplugs.CMS.Data.Entities;
+using Aiplugs.CMS.Data.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Aiplugs.CMS.Core.Services
 {
-    public class ContextFactory : IContextFactory<IContextParameters>
+    public class ContextFactory : IContextFactory
     {
         private readonly IServiceProvider _provider;
         public ContextFactory(IServiceProvider provider)
         {
             _provider = provider;
         }
-        public IContext<IContextParameters> Create(IJobInfo job, ILogger logger, CancellationToken token, Action<int> onProgress)
+        public IContext Create(Job job, ILogger logger, CancellationToken token, Action<int> onProgress)
         {
             var resolver = new StaticUserResolver(job.CreatedBy);
             var data = _provider.GetRequiredService<IDataRepository>();
@@ -32,7 +32,7 @@ namespace Aiplugs.CMS.Core.Services
                 DataService = new DataService(data, resolver, validator),
                 StorageService = new StorageService(config, files, folders, resolver),
                 SettingsService = new SettingsService(config, settings, resolver, validator),
-                Parameters = job.GetParameters<ContextParameters>()
+                Parameters = job.GetParameters<ContextParameters>(),
             };
         }
     }

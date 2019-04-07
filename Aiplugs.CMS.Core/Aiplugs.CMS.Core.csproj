@@ -5,19 +5,32 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Aiplugs.CMS/Aiplugs.CMS.csproj" />
+    <Compile Remove="Migrations\**" />
+    <Compile Remove="Repositories\**" />
+    <EmbeddedResource Remove="Migrations\**" />
+    <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="Migrations\**" />
+    <None Remove="Repositories\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aiplugs.Functions.Core" Version="0.11.0-alpha1" />
+    <ProjectReference Include="../Aiplugs.CMS/Aiplugs.CMS.csproj" />
+    <ProjectReference Include="..\Aiplugs.CMS.Data\Aiplugs.CMS.Data.csproj" />
+    <ProjectReference Include="..\Aiplugs.CMS.Query\Aiplugs.CMS.Query.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Dapper" Version="1.50.4" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
+
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.10" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
-    <PackageReference Include="Pidgin" Version="1.4.0" />
+    <PackageReference Include="RazorLight" Version="2.0.0-beta1" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
     <PackageReference Include="Polly" Version="5.8.0" />
   </ItemGroup>
 

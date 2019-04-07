@@ -6,7 +6,7 @@ namespace Aiplugs.CMS.Core.Services
 {
     public interface IValidationService
     {
-        Task<bool> ValidateAsync(Uri schemaUri, JObject data);
-        Task<bool> ValidateAsync(string collectionName, JObject data);
+        Task<bool> ValidateAsync(Uri schemaUri, JToken data);
+        Task<bool> ValidateAsync(string collectionName, JToken data);
     }
 }

@@ -1,0 +1,159 @@
+@model (CMSSchema schema, Newtonsoft.Json.Linq.JToken token, string name, bool required)
+@using Newtonsoft.Json.Linq
+@using Newtonsoft.Json.Schema
+
+@functions {
+string GetName(string name) => string.IsNullOrEmpty(Model.name) ? name : $"{Model.name}.{name}";
+}
+
+@{
+    var guid = "aiplugs-" + Guid.NewGuid().ToString("n");
+}
+
+@if (Model.schema.Type == JSchemaType.Object)
+{
+    foreach (var prop in Model.schema.Properties)
+    {
+        var m = (prop.Value, Model.token?[prop.Key], GetName(prop.Key), Model.schema.AsJSchema().Required.Contains(prop.Key));
+        <partial name="_Field" model=@m />
+    }
+}
+else if (Model.schema.Type == JSchemaType.Array)
+{
+    var items = Model.schema.Items;
+
+    if (items.Input != null && items.Input.IsSelect)
+    {
+        <aiplugs-select type="select" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" selection=@Model.schema.GetSelectList(Model.token) required=@Model.required />
+    }
+    else if (items.Input != null && items.Input.IsCheckbox)
+    {
+        <aiplugs-select type="checkbox" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" selection=@Model.schema.GetSelectList(Model.token) required=@Model.required/>
+    }
+    else if (
+        (Model.schema.Input != null && Model.schema.Input.IsTag) ||
+        (items.Type.HasValue && new[] { JSchemaType.Boolean, JSchemaType.Integer, JSchemaType.Number, JSchemaType.String }.Contains(items.Type.Value)))
+    {
+        var value = Model.token?.AsEnumerable()?.Select(t => (string)t).ToArray();
+        <aiplugs-tag label="@Model.schema.Title" description="@Model.schema.Description" name="@(Model.name+"[]")" ignore-case value="@value" required=@Model.required/>
+    }
+    else
+    {
+        var values = Model.token?.AsEnumerable() ?? Enumerable.Empty<JToken>();
+        if (Model.schema.AsJSchema().MinimumItems > 0 && values.Count() == 0)
+        {
+            values = new[] { (JToken)null };
+        }
+        <aiplugs-array label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" required=@Model.required>
+            <template>
+                <aiplugs-array-item label="@Model.schema.Title">
+                    <partial name="_Field" model=@((items, (JToken)null, Model.name + "[]", false)) />
+                </aiplugs-array-item>
+            </template>
+            @foreach (var token in values)
+            {
+                var m = (items, token, Model.name + "[]", false);
+                <aiplugs-array-item label="@Model.schema.Title">
+                    <partial name="_Field" model=@m />
+                </aiplugs-array-item>
+            }
+
+        </aiplugs-array>
+    }
+}
+else if (Model.schema.Input != null && Model.schema.Input.IsSelect)
+{
+    <aiplugs-select type="select" label="@Model.schema.Title" description="@Model.schema.Description" selection=@Model.schema.GetSelectList((string)Model.token) required=@Model.required/>
+}
+else if (Model.schema.Input != null && Model.schema.Input.IsRadio)
+{
+    <aiplugs-select type="radio" label="@Model.schema.Title" description="@Model.schema.Description" selection=@Model.schema.GetSelectList((string)Model.token) required=@Model.required/>
+}
+else if (Model.schema.Type == JSchemaType.Boolean)
+{
+    var c = Model.token != null ? (bool)Model.token : false;
+
+    <aiplugs-checkbox label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" checked=@c required=@Model.required/>
+}
+else if (Model.schema.Type == JSchemaType.Integer)
+{
+    <aiplugs-input type="integer" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) step="@Model.schema.Input?.Step" required=@Model.required/>
+}
+
+else if (Model.schema.Type == JSchemaType.Number)
+{
+    <aiplugs-input type="number" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) step="@Model.schema.Input?.Step" required=@Model.required/>
+}
+
+else if (Model.schema.Type == JSchemaType.String)
+{
+    if (Model.schema.Input == null)
+    {
+        <aiplugs-input type="text" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required/>
+    }
+    else
+    {
+        if (Model.schema.Input.IsTextArea)
+        {
+            <aiplugs-textarea label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required/>
+        }
+        else if (Model.schema.Input.IsWysiwyg)
+        {
+            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="html" required=@Model.required>
+                <template>
+                    <aiplugs-blade label="Edit @Model.schema.Title" wide expanded>
+                        <form>
+                            <aiplugs-actions>
+                                <button type="submit" is="aiplugs-button" looks="block" ic-put-to="//#@guid/value" with-close="aiplugs-blade">Close</button>
+                                <button type="button" is="aiplugs-button" open="#@(guid)-cancel">Discard Changes</button>
+                                <template id="@(guid)-cancel">
+                                    <aiplugs-dialog>
+                                        <p slot="content">Are you sure you want to close without save changes of WYSIWYG?</p>
+                                        <div slot="actions">
+                                            <button type="submit" is="aiplugs-button" color="warning" close="aiplugs-blade">Yes</button>
+                                            <button type="button" is="aiplugs-button" looks="block" color="primary" close="aiplugs-dialog">No</button>
+                                        </div>
+                                    </aiplugs-dialog>
+                                </template>
+                            </aiplugs-actions>
+                            <aiplugs-tinymce name="value" value-from="#@guid" modal-image="~/files?select=file" modal-video="~/files?select=file"></aiplugs-tinymce>
+                        </form>
+                    </aiplugs-blade>
+                </template>
+            </aiplugs-code>
+        }
+        else if (Model.schema.Input.IsCode)
+        {
+
+            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="@Model.schema.MonacoLanguage" required=@Model.required>
+                <template>
+                    <aiplugs-blade label="Edit @Model.schema.Title" wide expanded>
+                        <form>
+                            <aiplugs-actions>
+                                <button type="submit" is="aiplugs-button" looks="block" ic-put-to="//#@guid/value" with-close="aiplugs-blade">Close</button>
+                                <button type="button" is="aiplugs-button" open="#@(guid)-cancel">Discard Changes</button>
+                                <template id="@(guid)-cancel">
+                                    <aiplugs-dialog>
+                                        <p slot="content">Are you sure you want to close without save changes of WYSIWYG?</p>
+                                        <div slot="actions">
+                                            <button type="submit" is="aiplugs-button" color="warning" close="aiplugs-blade">Yes</button>
+                                            <button type="button" is="aiplugs-button" looks="block" color="primary" close="aiplugs-dialog">No</button>
+                                        </div>
+                                    </aiplugs-dialog>
+                                </template>
+                            </aiplugs-actions>
+                            <aiplugs-monaco name="value" value-from="#@guid" settings-from="#@(guid)-monaco-config"></aiplugs-monaco>
+                        </form>
+                    </aiplugs-blade>
+                </template>
+                <script id="@(guid)-monaco-config" type="application/json">
+                    @Html.Raw(Model.schema.Monaco.ToString())
+                </script>
+            </aiplugs-code>
+        }
+        else
+        {
+            <aiplugs-input type="@Model.schema.Input.Type" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required/>
+        }
+    }
+}

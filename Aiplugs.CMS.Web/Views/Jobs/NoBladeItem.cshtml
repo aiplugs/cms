@@ -1,0 +1,64 @@
+﻿@model Job
+@{
+    Layout = null;
+    var job = Model;
+    var status = job.Status == JobStatus.Running ? "info"
+               : job.Status == JobStatus.Success ? "success"
+               : job.Status == JobStatus.Faild ? "danger"
+               : job.Status == JobStatus.Canceled ? "warning"
+               : "default";
+    var progress = job.Progress;
+    var poll = job.Status == JobStatus.Running || job.Status == JobStatus.Ready ? "3s" : "300s";
+}
+
+<div class="flex flex-column" ic-src="/jobs/@(job.Id)?style=NoBlade" ic-poll="@poll" ic-replace-target="true">
+    <aiplugs-actions>
+        <button close="aiplugs-blade" is="aiplugs-button" looks="block">Close</button>
+        <span is="aiplugs-space"></span>
+        @if (job.Status == JobStatus.Running || job.Status == JobStatus.Ready)
+        {
+        <button is="aiplugs-button" open="#cancel-dialog" ic-replace-target="false">Cancel</button>
+        <template id="cancel-dialog">
+            <aiplugs-dialog>
+                <p slot="content">キャンセルしますか？</p>
+                <form slot="actions" ic-post-to="/jobs/@job.Id" ic-target="#job" ic-replace-target="true">
+                    <input type="hidden" name="cancel" value="exec" />
+                    <button type="submit" is="aiplugs-button" color="warning" with-close="aiplugs-dialog">Yes</button>
+                    <button type="button" is="aiplugs-button" looks="block" color="primary" close="aiplugs-dialog">No</button>
+                </form>
+            </aiplugs-dialog>
+        </template>
+        }
+    </aiplugs-actions>
+    @if (job.Status == JobStatus.Running || job.Status == JobStatus.Ready)
+    {
+    <div class="aiplugs-progress"></div>
+    }
+    <div class="form-content flex flex-column">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>ID</th>
+                    <td>@job.Id</td>
+                </tr>
+                <tr>
+                    <th>Procedure</th>
+                    <td>@job.Name</td>
+                </tr>
+                <tr>
+                    <th>Staus</th>
+                    <td>@job.Status</td>
+                </tr>
+                <tr>
+                    <th>Start At</th>
+                    <td>@(job.StartAt?.ToString() ?? "")</td>
+                </tr>
+                <tr>
+                    <th>Finish At</th>
+                    <td>@(job.FinishAt?.ToString() ?? "")</td>
+                </tr>
+            </tbody>
+        </table>
+        <textarea readonly style="width:100%; flex:1; margin-bottom: 1rem;">@job.Log</textarea>
+    </div>
+</div>

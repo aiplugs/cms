@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Aiplugs.CMS.Core.Data;
 using Aiplugs.CMS.Core.Models;
-using Aiplugs.Functions.Core;
-using Microsoft.Extensions.Configuration;
+using Aiplugs.CMS.Data.Repositories;
 using Newtonsoft.Json.Linq;
 
 namespace Aiplugs.CMS.Core.Services
@@ -22,17 +20,17 @@ namespace Aiplugs.CMS.Core.Services
             _resolver  = userResolver;
             _validator = validationService;
         }
-        public async Task<long> AddAsync(Collection collection)
+        public async Task<string> AddAsync(Collection collection)
         {
             var userId = _resolver.GetUserId();
             
             if (userId == null)
-                throw new ArgumentNullException(nameof(userId));
+                throw new UnauthorizedAccessException();
 
-            return await _repository.AddAsync(collection, userId);
+            return await _repository.AddAsync(collection, userId, DateTimeOffset.UtcNow);
         }
 
-        public async Task<Collection> LookupCollectionAsync(long id)
+        public async Task<Collection> LookupCollectionAsync(string id)
         {
             return await _repository.LookupCollectionAsync(id);
         }
@@ -42,7 +40,7 @@ namespace Aiplugs.CMS.Core.Services
             return await _repository.FindCollectionAsync(collectionName);
         }
 
-        public Task<IEnumerable<Collection>> GetCollectionHistoryAsync(long id)
+        public Task<IEnumerable<Collection>> GetCollectionHistoryAsync(string id)
         {
             throw new System.NotImplementedException();
         }
@@ -67,9 +65,9 @@ namespace Aiplugs.CMS.Core.Services
             var userId = _resolver.GetUserId();
             
             if (userId == null)
-                throw new ArgumentNullException(nameof(userId));
+                throw new UnauthorizedAccessException();
 
-            await _repository.UpdateAsync(settings, userId);
+            await _repository.UpdateAsync(settings, userId, DateTimeOffset.UtcNow);
         }
 
         public async Task UpdateAsync(Collection collection)
@@ -77,9 +75,9 @@ namespace Aiplugs.CMS.Core.Services
             var userId = _resolver.GetUserId();
             
             if (userId == null)
-                throw new ArgumentNullException(nameof(userId));
+                throw new UnauthorizedAccessException();
 
-            await _repository.UpdateAsync(collection, userId);
+            await _repository.UpdateAsync(collection, userId, DateTimeOffset.UtcNow);
         }
 
         public async Task<bool> ValidateAsync(Settings settings)

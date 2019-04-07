@@ -1,24 +1,22 @@
+using Aiplugs.CMS.Data.Repositories;
+using Aiplugs.CMS.Query;
+using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Aiplugs.CMS.Core.Data;
-using Aiplugs.CMS.Core.Query;
-using Aiplugs.CMS.Core.Services;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Aiplugs.CMS.Tests
 {
     public class RepositoryTest
     {
-        private async Task All<TRepository>(Func<TRepository,Task> action)
+        #region helpers
+        private async Task All<TRepository>(Func<TRepository, Task> action)
         {
             using (var testdb = new TestDb())
             {
-                foreach(var db in testdb.DBs)
+                foreach (var db in testdb.DBs)
                 {
                     await action(db.Resolve<TRepository>());
                 }
@@ -28,71 +26,74 @@ namespace Aiplugs.CMS.Tests
         {
             using (var testdb = new TestDb())
             {
-                foreach(var db in testdb.DBs)
+                foreach (var db in testdb.DBs)
                 {
                     await action(db.Resolve<TRepository>(), db.Resolve<ERepository>());
                 }
             }
         }
+        #endregion
 
         [Fact]
         public async Task Data_AddAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester");
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester", DateTimeOffset.UtcNow);
 
-                Assert.True(id > 0);
+                Assert.NotNull(datum);
             });
         }
 
         [Fact]
         public async Task Data_LookupAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester");
-                
-                Assert.True(id > 0);
-    
-                var item = await repo.LookupAsync(id);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester", DateTimeOffset.UtcNow);
 
-                Assert.Equal("Hello, World!", item.Data["Text"]);
+                Assert.NotNull(datum);
+
+                var item = await repo.LookupAsync(datum.Id);
+
+                Assert.Equal("Hello, World!", item.Data("Text"));
             });
         }
 
         [Fact]
         public async Task Data_UpdateAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester1");
-                
-                Assert.True(id > 0);
-    
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester1", DateTimeOffset.UtcNow);
 
-                var item = await repo.LookupAsync(id);
-                
-                Assert.Equal("Hello, World!!!", item.Data["Text"]);
-                Assert.Equal("tester3", item.UpdatedBy);
+                Assert.NotNull(datum);
+
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!" }).ToString(), datum.CurrentId, "tester2", DateTimeOffset.UtcNow);
+
+                var item = await repo.LookupAsync(datum.Id);
+
+                Assert.Equal("Hello, World!!", item.Data("Text"));
+                Assert.Equal("tester2", item.UpdatedBy);
             });
         }
 
         [Fact]
         public async Task Data_GetHistoryAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester1");
-                
-                Assert.True(id > 0);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester1", DateTimeOffset.UtcNow);
 
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
+                Assert.NotNull(datum);
 
-                var history = (await repo.GetHistoryAsync(id, null, 100)).ToArray();
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!" }).ToString(), datum.CurrentId, "tester2", DateTimeOffset.UtcNow);
+
+                var item = await repo.LookupAsync(datum.Id);
+
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!!" }).ToString(), item.CurrentId, "tester3", DateTimeOffset.UtcNow);
+
+                var history = (await repo.GetHistoryAsync(datum.Id, null, 100)).ToArray();
 
                 Assert.Equal(3, history.Length);
                 Assert.Equal("tester3", history[0].CreatedBy);
@@ -105,17 +106,16 @@ namespace Aiplugs.CMS.Tests
         public async Task Data_GetEventsAsync()
         {
             var pivot = DateTime.UtcNow;
-            
+
             await Task.Delay(TimeSpan.FromSeconds(1));
 
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester1");
-                
-                Assert.True(id > 0);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester1", DateTimeOffset.UtcNow);
 
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
+                Assert.NotNull(datum);
+
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!" }).ToString(), datum.CurrentId, "tester2", DateTimeOffset.UtcNow);
 
                 var events = (await repo.GetEventsAsync("test", pivot, null, 100)).ToArray();
 
@@ -127,38 +127,40 @@ namespace Aiplugs.CMS.Tests
         [Fact]
         public async Task Data_GetRecordThenAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester1");
-                
-                Assert.True(id > 0);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester1", DateTimeOffset.UtcNow);
 
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!" }), "tester2");
+                Assert.NotNull(datum);
 
-                var pivot = DateTime.UtcNow;            
-                
-                await repo.UpdateAsync(id, JObject.FromObject(new { Text = "Hello, World!!!" }), "tester3");
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!" }).ToString(), datum.CurrentId, "tester2", DateTimeOffset.UtcNow);
 
-                var record = await repo.GetRecordThenAsync(id, pivot);
-                
+                var pivot = DateTimeOffset.UtcNow;
+
+                var item = await repo.LookupAsync(datum.Id);
+
+                await repo.UpdateDataAsync(datum.Id, JObject.FromObject(new { Text = "Hello, World!!!" }).ToString(), item.CurrentId, "tester3", DateTimeOffset.UtcNow);
+
+                var record = await repo.GetRecordThenAsync(datum.Id, pivot);
+
                 Assert.NotNull(record);
                 Assert.Equal("tester2", record.CreatedBy);
-                Assert.Equal("Hello, World!!", record.Data["Text"]);
+                Assert.Equal("Hello, World!!", record.Data("Text"));
             });
         }
 
         [Fact]
         public async Task Data_SetStatusAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester");
-                
-                Assert.True(id > 0);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester", DateTimeOffset.UtcNow);
 
-                await repo.SetStatusAsync(id, false);
+                Assert.NotNull(datum);
 
-                var item = await repo.LookupAsync(id);
+                await repo.UpdateStatusAsync(datum.Id, false, datum.CurrentId);
+
+                var item = await repo.LookupAsync(datum.Id);
 
                 Assert.Equal(false, item.IsValid);
             });
@@ -167,17 +169,17 @@ namespace Aiplugs.CMS.Tests
         [Fact]
         public async Task Data_RemoveAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }), "tester");
-                
-                Assert.True(id > 0);
+                var datum = await repo.AddAsync("test", JObject.FromObject(new { Text = "Hello, World!" }).ToString(), "tester", DateTimeOffset.UtcNow);
 
-                var ex = await Xunit.Record.ExceptionAsync(async() => await repo.RemoveAsync(id));
+                Assert.NotNull(datum);
+
+                var ex = await Xunit.Record.ExceptionAsync(async () => await repo.RemoveAsync(datum.Id));
 
                 Assert.Null(ex);
 
-                var item = await repo.LookupAsync(id);
+                var item = await repo.LookupAsync(datum.Id);
 
                 Assert.Null(item);
             });
@@ -186,56 +188,56 @@ namespace Aiplugs.CMS.Tests
         [Fact]
         public async Task Data_GetAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id1 = await repo.AddAsync("test", JObject.FromObject(new { Text = "11" }), "tester");
-                var id2 = await repo.AddAsync("test", JObject.FromObject(new { Text = "12" }), "tester");
-                var id3 = await repo.AddAsync("test", JObject.FromObject(new { Text = "13" }), "tester");
+                var d1 = await repo.AddAsync("test", JObject.FromObject(new { Text = "11" }).ToString(), "tester", DateTimeOffset.UtcNow);
+                var d2 = await repo.AddAsync("test", JObject.FromObject(new { Text = "12" }).ToString(), "tester", DateTimeOffset.UtcNow);
+                var d3 = await repo.AddAsync("test", JObject.FromObject(new { Text = "13" }).ToString(), "tester", DateTimeOffset.UtcNow);
 
                 Assert.Equal(3, (await repo.GetAsync("test", null, true, null, 100)).Count());
                 Assert.Equal(3, (await repo.GetAsync("test", "1", true, null, 100)).Count());
                 Assert.Equal(1, (await repo.GetAsync("test", "2", true, null, 100)).Count());
                 Assert.Equal(1, (await repo.GetAsync("test", "3", true, null, 100)).Count());
-                Assert.Equal(2, (await repo.GetAsync("test", "1", false, id1, 100)).Count());
-                Assert.Equal(1, (await repo.GetAsync("test", "1", false, id2, 100)).Count());
+                Assert.Equal(2, (await repo.GetAsync("test", "1", false, d1.Id, 100)).Count());
+                Assert.Equal(1, (await repo.GetAsync("test", "1", false, d2.Id, 100)).Count());
 
                 var asc = (await repo.GetAsync("test", null, false, null, 100)).ToArray();
-                Assert.Equal("11", (string)asc[0].Data["Text"]);
-                Assert.Equal("12", (string)asc[1].Data["Text"]);
-                Assert.Equal("13", (string)asc[2].Data["Text"]);
-                
+                Assert.Equal("11", asc[0].Data("Text"));
+                Assert.Equal("12", asc[1].Data("Text"));
+                Assert.Equal("13", asc[2].Data("Text"));
+
                 var desc = (await repo.GetAsync("test", null, true, null, 100)).ToArray();
-                Assert.Equal("13", (string)desc[0].Data["Text"]);
-                Assert.Equal("12", (string)desc[1].Data["Text"]);
-                Assert.Equal("11", (string)desc[2].Data["Text"]);
+                Assert.Equal("13", desc[0].Data("Text"));
+                Assert.Equal("12", desc[1].Data("Text"));
+                Assert.Equal("11", desc[2].Data("Text"));
             });
         }
 
         [Fact]
         public async Task Data_QueryAsync()
         {
-            await All<IDataRepository>(async repo => 
+            await All<IDataRepository>(async repo =>
             {
-                var id1 = await repo.AddAsync("test", JObject.FromObject(new { Text = "11" }), "tester");
-                var id2 = await repo.AddAsync("test", JObject.FromObject(new { Text = "12" }), "tester");
-                var id3 = await repo.AddAsync("test", JObject.FromObject(new { Text = "13" }), "tester");
+                var d1 = await repo.AddAsync("test", JObject.FromObject(new { Text = "11" }).ToString(), "tester", DateTimeOffset.UtcNow);
+                var d2 = await repo.AddAsync("test", JObject.FromObject(new { Text = "12" }).ToString(), "tester", DateTimeOffset.UtcNow);
+                var d3 = await repo.AddAsync("test", JObject.FromObject(new { Text = "13" }).ToString(), "tester", DateTimeOffset.UtcNow);
+
+                var asc = (await repo.QueryAsync("test", QParser.Parse("$.Text like '%'").Expression, false, null, 100)).ToArray();
+                Assert.Equal("11", asc[0].Data("Text"));
+                Assert.Equal("12", asc[1].Data("Text"));
+                Assert.Equal("13", asc[2].Data("Text"));
+
+                var desc = (await repo.QueryAsync("test", QParser.Parse("$.Text like '%'").Expression, true, null, 100)).ToArray();
+                Assert.Equal("13", desc[0].Data("Text"));
+                Assert.Equal("12", desc[1].Data("Text"));
+                Assert.Equal("11", desc[2].Data("Text"));
 
                 Assert.Equal(3, (await repo.QueryAsync("test", QParser.Parse("$.Text like '%'").Expression, true, null, 100)).Count());
                 Assert.Equal(3, (await repo.QueryAsync("test", QParser.Parse("$.Text like '1%'").Expression, true, null, 100)).Count());
                 Assert.Equal(1, (await repo.QueryAsync("test", QParser.Parse("$.Text like '%2'").Expression, true, null, 100)).Count());
                 Assert.Equal(1, (await repo.QueryAsync("test", QParser.Parse("$.Text like '%3'").Expression, true, null, 100)).Count());
-                Assert.Equal(2, (await repo.QueryAsync("test", QParser.Parse("$.Text like '1%'").Expression, false, id1, 100)).Count());
-                Assert.Equal(1, (await repo.QueryAsync("test", QParser.Parse("$.Text like '1%'").Expression, false, id2, 100)).Count());
-
-                var asc = (await repo.QueryAsync("test", QParser.Parse("$.Text like '%'").Expression, false, null, 100)).ToArray();
-                Assert.Equal("11", (string)asc[0].Data["Text"]);
-                Assert.Equal("12", (string)asc[1].Data["Text"]);
-                Assert.Equal("13", (string)asc[2].Data["Text"]);
-                
-                var desc = (await repo.QueryAsync("test", QParser.Parse("$.Text like '%'").Expression, true, null, 100)).ToArray();
-                Assert.Equal("13", (string)desc[0].Data["Text"]);
-                Assert.Equal("12", (string)desc[1].Data["Text"]);
-                Assert.Equal("11", (string)desc[2].Data["Text"]);
+                Assert.Equal(2, (await repo.QueryAsync("test", QParser.Parse("$.Text like '1%'").Expression, false, d1.Id, 100)).Count());
+                Assert.Equal(1, (await repo.QueryAsync("test", QParser.Parse("$.Text like '1%'").Expression, false, d2.Id, 100)).Count());
             });
         }
 
@@ -244,9 +246,9 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository>(async repo =>
             {
-                var id = await repo.AddAsync("/Test/");
+                var folder = await repo.AddAsync("/Test/");
 
-                Assert.True(id > 0);
+                Assert.NotNull(folder);
 
                 var ex = await Xunit.Record.ExceptionAsync(async () => await repo.AddAsync("/Test/"));
 
@@ -259,14 +261,14 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository>(async repo =>
             {
-                var id = await repo.AddAsync("/Test/");
-
-                Assert.True(id > 0);
-
-                var folder = await repo.LookupAsync(id);
+                var folder = await repo.AddAsync("/Test/");
 
                 Assert.NotNull(folder);
-                Assert.Equal("/Test/", folder.Path);
+
+                var lookuped = await repo.LookupAsync(folder.Id);
+
+                Assert.NotNull(lookuped);
+                Assert.Equal("/Test/", lookuped.Path);
             });
         }
 
@@ -287,17 +289,17 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository>(async repo =>
             {
-                var id = await repo.AddAsync("/Test/");
+                var folder = await repo.AddAsync("/Test/");
 
-                Assert.True(id > 0);
+                Assert.NotNull(folder);
 
-                var ex = await Xunit.Record.ExceptionAsync(async () => await repo.RemoveAsync(id));
+                var ex = await Xunit.Record.ExceptionAsync(async () => await repo.RemoveAsync(folder.Id));
 
                 Assert.Null(ex);
 
-                var folder = await repo.LookupAsync(id);
+                var lookuped = await repo.LookupAsync(folder.Id);
 
-                Assert.Null(folder);
+                Assert.Null(lookuped);
             });
         }
 
@@ -306,15 +308,15 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository>(async repo =>
             {
-                var id = await repo.AddAsync("/Test/");
+                var folder = await repo.AddAsync("/Test/");
 
-                Assert.True(id > 0);
+                Assert.NotNull(folder);
 
-                await repo.UpdateAsync(id, "/Test1/");
+                await repo.UpdateAsync(folder.Id, "/Test1/");
 
-                var folder = await repo.LookupAsync(id);
+                var lookuped = await repo.LookupAsync(folder.Id);
 
-                Assert.Equal("/Test1/", folder.Path);
+                Assert.Equal("/Test1/", lookuped.Path);
             });
         }
 
@@ -323,13 +325,13 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository>(async repo =>
             {
-                var id = await repo.AddAsync("/Test/");
-
-                Assert.True(id > 0);
-
-                var folder = await repo.GetAsync("/Test/");
+                var folder = await repo.AddAsync("/Test/");
 
                 Assert.NotNull(folder);
+
+                var got = await repo.GetAsync("/Test/");
+
+                Assert.NotNull(got);
             });
         }
 
@@ -355,19 +357,19 @@ namespace Aiplugs.CMS.Tests
                 Assert.Equal("/Test/Test3/", folders[2].Path);
             });
         }
-        
+
         [Fact]
         public async Task File_AddAsync()
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var id = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                await files.AddAsync(id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
 
-                var ex = await Xunit.Record.ExceptionAsync(async () => 
+                var ex = await Xunit.Record.ExceptionAsync(async () =>
                 {
-                    await files.AddAsync(id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                    await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
                 });
 
                 Assert.NotNull(ex);
@@ -379,14 +381,14 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var folderId = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                var id = await files.AddAsync(folderId, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                var file = await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
 
-                var file = await files.LookupAsync(id);
+                var lookuped = await files.LookupAsync(file.Id);
 
-                Assert.NotNull(file);
-                Assert.Equal("TestFile", file.Name);
+                Assert.NotNull(lookuped);
+                Assert.Equal("TestFile", lookuped.Name);
             });
         }
 
@@ -395,16 +397,18 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var folderId = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                var id = await files.AddAsync(folderId, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                var file = await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
 
-                await files.UpdateAsync(id, folderId, "TestFile1", "text/plain", 100, "tester", DateTime.UtcNow);
+                await files.UpdatePathAsync(file.Id, folder.Id, "TestFile1", "tester", DateTime.UtcNow);
+                await files.UpdateMetaAsync(file.Id, "application/json", 100, "tester", DateTime.UtcNow);
 
-                var file = await files.LookupAsync(id);
-                
-                Assert.NotNull(file);
-                Assert.Equal("TestFile1", file.Name);
+                var lookuped = await files.LookupAsync(file.Id);
+
+                Assert.NotNull(lookuped);
+                Assert.Equal("TestFile1", lookuped.Name);
+                Assert.Equal("application/json", lookuped.ContentType);
             });
         }
 
@@ -413,19 +417,17 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var folderId = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                var id = await files.AddAsync(folderId, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
-
-                await files.UpdateAsync(id, folderId, "TestFile1", "text/plain", 100, "tester", DateTime.UtcNow);
+                var file = await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
                 
-                var ex = await Xunit.Record.ExceptionAsync(async() => await files.RemoveAsync(id));
-               
+                var ex = await Xunit.Record.ExceptionAsync(async () => await files.RemoveAsync(file.Id));
+
                 Assert.Null(ex);
-                
-                var file = await files.LookupAsync(id);
-                
-                Assert.Null(file);
+
+                var lookuped = await files.LookupAsync(file.Id);
+
+                Assert.Null(lookuped);
             });
         }
 
@@ -434,12 +436,12 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var id = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                await files.AddAsync(id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
-                
-                var file = await files.FindChildAsync(id, "TestFile");
-                
+                await files.AddAsync(folder.Id, "TestFile", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+
+                var file = await files.FindChildAsync(folder.Id, "TestFile");
+
                 Assert.NotNull(file);
             });
         }
@@ -449,16 +451,16 @@ namespace Aiplugs.CMS.Tests
         {
             await All<IFolderRepository, IFileRepository>(async (folders, files) =>
             {
-                var id = await folders.AddAsync("/Test/");
+                var folder = await folders.AddAsync("/Test/");
 
-                var id1 = await files.AddAsync(id, "TestFile1", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
-                var id2 = await files.AddAsync(id, "TestFile2", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
-                var id3 = await files.AddAsync(id, "TestFile3", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
-                
-                Assert.Equal(3, (await files.GetChildrenAsync(id, null, 100)).Count());
-                Assert.Equal(2, (await files.GetChildrenAsync(id, null, 2)).Count());
-                Assert.Equal(2, (await files.GetChildrenAsync(id, id1, 100)).Count());
-                Assert.Equal(1, (await files.GetChildrenAsync(id, id2, 100)).Count());
+                var f1 = await files.AddAsync(folder.Id, "TestFile1", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                var f2 = await files.AddAsync(folder.Id, "TestFile2", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+                var f3 = await files.AddAsync(folder.Id, "TestFile3", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
+
+                Assert.Equal(3, (await files.GetChildrenAsync(folder.Id, null, 100)).Count());
+                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, null, 2)).Count());
+                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, f1.Id, 100)).Count());
+                Assert.Equal(1, (await files.GetChildrenAsync(folder.Id, f2.Id, 100)).Count());
             });
         }
     }

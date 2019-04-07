@@ -1,0 +1,26 @@
+﻿@model Aiplugs.CMS.Web.ViewModels.TemplateViewModels.EditTemplateViewModel
+@{
+    ViewData["Title"] = "Templates";
+    ViewData.AddActivePage(SharedNavPages.Templates);
+
+}
+
+<aiplugs-blade label="Templates" wide expanded>
+    <form action="~/templates/@Model.Id" method="post" class="flex flex-column">
+        <aiplugs-actions>
+            <input type="submit" is="aiplugs-button" looks="block" color="primary" value="Save" />
+            <a asp-action="List" is="aiplugs-button">Cancel</a>
+        </aiplugs-actions>
+        <div class="flex flex-column">
+            <div style="padding:0 24px;">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CurrentId" />
+                <aiplugs-input asp-for="Name" />
+            </div>
+            <aiplugs-monaco asp-for="Template" settings-from="#monaco-settings" />
+        </div>
+        <script type="application/json" id="monaco-settings">
+            { "language": "razor" }
+        </script>
+    </form>
+</aiplugs-blade>

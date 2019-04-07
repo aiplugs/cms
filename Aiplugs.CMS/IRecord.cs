@@ -5,9 +5,9 @@ namespace Aiplugs.CMS
 {
     public interface IRecord
     {
-        long Id { get; }
-        JObject Data { get; }
-        DateTime CreatedAt { get; }
-        string CreatedBy { get; set; }
+        string Id { get; }
+        JToken Data { get; }
+        DateTimeOffset CreatedAt { get; }
+        string CreatedBy { get; }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Aiplugs.CMS.Web.Models;
 using Aiplugs.CMS.Web.ViewModels;
 using Aiplugs.CMS.Web.Filters;
+using Aiplugs.CMS.Data.Entities;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
@@ -20,13 +21,13 @@ namespace Aiplugs.CMS.Web.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ILogger _logger;
 
         public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
@@ -45,7 +46,7 @@ namespace Aiplugs.CMS.Web.Controllers
             var signin = await _signInManager.PasswordSignInAsync(SAMPLE_USER, SAMPLE_PASS, false, lockoutOnFailure: false);
             if (signin.Succeeded == false)
             {
-                var user = new ApplicationUser { UserName = SAMPLE_USER, Email = SAMPLE_USER };
+                var user = new User { UserName = SAMPLE_USER, Email = SAMPLE_USER };
                 var signup = await _userManager.CreateAsync(user, SAMPLE_PASS);
 
                 if (signup.Succeeded == false)

@@ -1,6 +1,5 @@
 using System.IO;
 using System.Threading.Tasks;
-using Aiplugs.Functions.Core;
 
 namespace Aiplugs.CMS.Core.Services
 {

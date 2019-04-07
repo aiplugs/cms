@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Aiplugs.CMS.Core.Data;
 using Aiplugs.CMS.Core.Models;
-using Aiplugs.Functions.Core;
-using Microsoft.Extensions.Configuration;
+using Aiplugs.CMS.Data.Repositories;
 using SysFile = System.IO.File;
 
 namespace Aiplugs.CMS.Core.Services
 {
-    using File = Aiplugs.CMS.Core.Models.File;
-    using Folder = Aiplugs.CMS.Core.Models.Folder;
+    using File = Models.File;
+    using Folder = Models.Folder;
     public class StorageService : IStorageService
     {
         private readonly string _home;
@@ -42,19 +40,24 @@ namespace Aiplugs.CMS.Core.Services
         public async Task<IFile> AddFileAsync(IFolder folder, string name, string contentType, Stream binary)
         {
             if (folder == null)
-                new ArgumentNullException(nameof(folder));
+                throw new ArgumentNullException(nameof(folder));
 
             if (string.IsNullOrWhiteSpace(name))
-                new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(name));
                 
             if (name.Contains("/"))
                 throw new ArgumentException("Cannot use path delimiter('/')", nameof(name));
             
             if (string.IsNullOrEmpty(contentType))
-                new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException(nameof(contentType));
             
             if (binary == null)
-                new ArgumentNullException(nameof(binary));
+                throw new ArgumentNullException(nameof(binary));
+
+            var userId =  _resolver.GetUserId();
+
+            if (userId == null)
+                throw new UnauthorizedAccessException();
 
             var path = CreateBinaryPath();
             using(var stream = SysFile.OpenWrite(path))
@@ -62,34 +65,26 @@ namespace Aiplugs.CMS.Core.Services
                 await binary.CopyToAsync(stream);
             }
             var size = new FileInfo(path).Length;
-            var userId =  _resolver.GetUserId();
-            var now = DateTime.UtcNow;
-            var id = await _files.AddAsync(folder.Id, name, path, contentType, size, userId, now);
+            var file = await _files.AddAsync(folder.Id, name, path, contentType, size, userId, DateTimeOffset.UtcNow);
 
-            return new File
-            {
-                Id = id,
-                Path = folder.Path + name,
-                Name = name,
-                ContentType = contentType,
-                Size = size,
-                LastModifiedBy = userId,
-                LastModifiedAt = now,
-                BinaryPath = path,
-                FolderId = folder.Id
-            };
+            return Mapping.Mapper.Map<File>(file);
         }
 
         public async Task ReplaceFileAsync(IFile file, string contentType, Stream binary)
         {
             if (file == null)
-                new ArgumentNullException(nameof(file));
+                throw new ArgumentNullException(nameof(file));
 
             if (string.IsNullOrEmpty(contentType))
-                new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException(nameof(contentType));
             
             if (binary == null)
-                new ArgumentNullException(nameof(binary));
+                throw new ArgumentNullException(nameof(binary));
+
+            var userId =  _resolver.GetUserId();
+
+            if (userId == null)
+                throw new UnauthorizedAccessException();
 
             var _file = file as File;
             var path = ((File)file).BinaryPath;
@@ -98,10 +93,8 @@ namespace Aiplugs.CMS.Core.Services
                 await binary.CopyToAsync(stream);
             }
             var size = new FileInfo(path).Length;
-            var userId =  _resolver.GetUserId();
-            var now = DateTime.UtcNow;
-            
-            await _files.UpdateAsync(file.Id, _file.FolderId, _file.Name, contentType, size, userId, now);
+
+            await _files.UpdateMetaAsync(file.Id, contentType, size, userId, DateTimeOffset.UtcNow);
         }
 
         public async Task<IFolder> AddFolderAsync(IFolder folder, string name)
@@ -116,34 +109,33 @@ namespace Aiplugs.CMS.Core.Services
                 throw new ArgumentException("Cannot use path delimiter('/')", nameof(name));
 
             var path = folder.Path + name + "/";
-            var id = await _folders.AddAsync(path);
-            
-            return new Folder
-            {
-                Id = id,
-                Path = path,
-                Name = name,
-            };
+            var added = await _folders.AddAsync(path);
+
+            return Mapping.Mapper.Map<Folder>(added);
         }
 
         public async Task<IFile> FindFileAsync(string path)
         {
-            if (string.IsNullOrEmpty(path))
-                new ArgumentNullException(nameof(path));
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
 
             var names = path.Split('/').Where(s => string.IsNullOrEmpty(s) == false).ToArray();
 
             if (names.Length < 1)
-                new ArgumentOutOfRangeException(nameof(path));
+                throw new ArgumentOutOfRangeException(nameof(path));
 
             var head = names.Take(names.Length - 1).ToArray();
             var tail = names.Last();
-            var folder = await _folders.GetAsync($"/{string.Join("/",head)}");
+            var folderPath = $"/{string.Join("/", head)}/".Replace("//", "/");
+            var folder = await _folders.GetAsync(folderPath);
 
             if (folder == null)
                 return null;
             
             var file = await _files.FindChildAsync(folder.Id, tail);
+
+            if (file == null)
+                return null;
 
             return new File
             {
@@ -161,13 +153,19 @@ namespace Aiplugs.CMS.Core.Services
 
         public async Task<IFolder> FindFolderAsync(string path)
         {
-            if (string.IsNullOrEmpty(path))
-                new ArgumentNullException(nameof(path));
-            
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (path.StartsWith("/") == false)
+                path = "/" + path;
+
             if (path.EndsWith("/") == false)
-                path += "/";
+                path = path + "/";
             
             var folder = await _folders.GetAsync(path);
+
+            if (folder == null)
+                return null;
 
             return new Folder
             {
@@ -182,19 +180,13 @@ namespace Aiplugs.CMS.Core.Services
             return await FindFolderAsync("/");
         }
 
-        public async Task<IFile> LookupFileAsync(long id)
+        public async Task<IFile> LookupFileAsync(string id)
         {
             var file = await _files.LookupAsync(id);
-            return new File
-            {
-                Id = file.Id,
-                Name = file.Name,
-                ContentType = file.ContentType,
-
-            };
+            return Mapping.Mapper.Map<File>(file);
         }
 
-        public async Task<IFolder> LookupFolderAsync(long id)
+        public async Task<IFolder> LookupFolderAsync(string id)
         {
             var folder = await _folders.LookupAsync(id);
             return new Folder
@@ -275,7 +267,11 @@ namespace Aiplugs.CMS.Core.Services
                 throw new ArgumentException("Cannot use path delimiter('/')", nameof(name));
 
             var userId = _resolver.GetUserId();
-            await _files.UpdateAsync(file.Id, dst.Id, name, file.ContentType, file.Size, userId, DateTime.UtcNow);
+
+            if (userId == null)
+                throw new UnauthorizedAccessException();
+
+            await _files.UpdatePathAsync(file.Id, dst.Id, name, userId, DateTime.UtcNow);
         }
 
         public async Task<IEnumerable<IFolder>> GetFoldersAsync(string path, string skipToken = null, int limit = 100)
@@ -297,29 +293,18 @@ namespace Aiplugs.CMS.Core.Services
             return await GetFoldersAsync(parent.Path, skipToken, limit);
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync(string path, long? skipToken = null, int limit = 100)
+        public async Task<IEnumerable<IFile>> GetFilesAsync(string path, string skipToken = null, int limit = 100)
         {
             var folder = await FindFolderAsync(path);
             
             return await GetFilesAsync(folder, skipToken, limit);
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, long? skipToken = null, int limit = 100)
+        public async Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, string skipToken = null, int limit = 100)
         {
             var files = await _files.GetChildrenAsync(parent.Id, skipToken, limit);
             
-            return files.Select(file => new File
-            {
-                Id = file.Id,
-                Path = parent.Path + file.Name,
-                Name = file.Name,
-                ContentType = file.ContentType,
-                Size = file.Size,
-                LastModifiedBy = file.LastModifiedBy,
-                LastModifiedAt = file.LastModifiedAt,
-                BinaryPath = file.BinaryPath,
-                FolderId = file.FolderId
-            });
+            return files.Select(Mapping.Mapper.Map<File>).ToArray();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Aiplugs.CMS.Core.Models;
-using Aiplugs.Functions.Core;
+using SysFile = System.IO.File;
 
 namespace Aiplugs.CMS.Core.Services
 {
@@ -42,31 +42,27 @@ namespace Aiplugs.CMS.Core.Services
             return _builtins;
         }
 
-        public async Task<long?> RegisterBuiltinProcedureAsync(string collectionName, string procedureName, IContextParameters parameters)
+        public async Task<string> RegisterAsync(string collectionName, string procedureName, IContextParameters parameters)
         {
             if (collectionName.Contains(':'))
                 throw new ArgumentException(nameof(collectionName), "Cannot use delimiter(:)");
-            
+
             if (procedureName.Contains(':'))
                 throw new ArgumentException(nameof(procedureName), "Cannot use delimiter(:)");
 
-            if (GetBuiltinProcedureNames().Contains(procedureName) == false)
-                throw new ArgumentOutOfRangeException(nameof(procedureName), "Invalid builtin procedure");
+            if (GetBuiltinProcedureNames().Contains(procedureName))
+                return await _jobs.ExclusiveCreateAsync($"{BUILTIN}:{collectionName}:{procedureName}", parameters);
 
-            return await _jobs.ExclusiveCreateAsync($"{BUILTIN}:{collectionName}:{procedureName}", parameters);
+            var collection = await _settings.FindCollectionAsync(collectionName);
+            var info = collection.Procedures?.Where(procedure => procedure.Name == procedureName).FirstOrDefault();
+
+            if (info != null)
+                return await _jobs.ExclusiveCreateAsync($"{CUSTOM}:{collectionName}:{procedureName}", parameters);
+
+            throw new NotSupportedException($"{procedureName} is not supported.");
         }
-
-        public async Task<long?> RegisterCustomProcedureAsync(string collectionName, ProcedureInfo procedure, IContextParameters parameters)
-        {
-            if (collectionName.Contains(':'))
-                throw new ArgumentException(nameof(collectionName), "Cannot use delimiter(:)");
-            
-            if (procedure.Name.Contains(':'))
-                throw new ArgumentException(nameof(procedure), "Cannot use delimiter(:) to procedure name");
-
-            return await _jobs.ExclusiveCreateAsync($"{CUSTOM}:{collectionName}:{procedure.Name}", parameters);
-        }
-        public Aiplugs.Functions.Core.IProcedure Resolve(string name)
+        
+        public IProcedure Resolve(string name)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException();
@@ -83,11 +79,12 @@ namespace Aiplugs.CMS.Core.Services
             
             return null;
         }
-        public Aiplugs.Functions.Core.IProcedure ResolveBuiltin(string procedureName)
+        public IProcedure ResolveBuiltin(string procedureName)
         {
-            return new BuiltinProcedure(GetBuiltinProcedures().First(procedure => procedure.Name == procedureName));
+            var type = GetBuiltinProcedures().First(procedure => procedure.Name == procedureName);
+            return (IProcedure)Activator.CreateInstance(type);
         }
-        public async Task<Aiplugs.Functions.Core.IProcedure> ResolveCustom(string collectionName, string procedureName)
+        public async Task<IProcedure> ResolveCustom(string collectionName, string procedureName)
         {
             var collection = await _settings.FindCollectionAsync(collectionName);
             var procedure = collection.Procedures.Where(p => p.Name == procedureName).FirstOrDefault();
@@ -108,14 +105,17 @@ namespace Aiplugs.CMS.Core.Services
                 await CopyIfNeed(file, dir);
             }
 
-            return new CustomProcedure(Path.Combine(dir, tail), procedure.TypeName);
+            var asm = Assembly.LoadFrom(Path.Combine(dir, tail));
+            var type = Type.GetType($"{procedure.TypeName}, {asm.FullName}");
+
+            return (IProcedure)Activator.CreateInstance(type);
         }
         public async Task CopyIfNeed(IFile file, string dir)
         {
             var path = Path.Combine(dir, file.Name);
             if (NeedCopy(file, path))
             {
-                using(var dst = System.IO.File.OpenWrite(Path.Combine(path)))
+                using(var dst = SysFile.OpenWrite(Path.Combine(path)))
                 using(var src = _storage.OpenFile(file))
                 {
                     await src.CopyToAsync(dst);
@@ -124,7 +124,7 @@ namespace Aiplugs.CMS.Core.Services
         }
         public bool NeedCopy(IFile file, string path)
         {
-            if (System.IO.File.Exists(path) == false)
+            if (SysFile.Exists(path) == false)
                 return true;
             
             var info = new FileInfo(path);

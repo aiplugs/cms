@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
-using Aiplugs.CMS.Core.Data;
-using Aiplugs.Functions.Core;
+using Aiplugs.CMS.Data;
+using Aiplugs.CMS.Data.QueryBuilders;
+using Aiplugs.CMS.Data.Repositories;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aiplugs.CMS.Tests
 {
@@ -34,10 +36,9 @@ namespace Aiplugs.CMS.Tests
     }
     public abstract class TestDbBase : IDisposable
     {
-        IDbConnection Instance { get; }
-        public virtual IDataRepository DataRepository { get; }
-        public virtual IFileRepository FileRepository { get; }
-        public virtual IFolderRepository FolderRepository { get; }
+        public IDataRepository DataRepository { get; protected set; }
+        public IFileRepository FileRepository { get; protected set; }
+        public IFolderRepository FolderRepository { get; protected set; }
 
         public TRepository Resolve<TRepository>()
         {
@@ -56,32 +57,33 @@ namespace Aiplugs.CMS.Tests
     }
     public class SQLiteTestDb : TestDbBase
     {
-        public IDbConnection Instance { get; }
-        public override IDataRepository DataRepository { get { return new Core.Data.Sqlite.DataRepository(Instance, new Core.Data.Sqlite.QueryBuilder()); } }
-        public override IFileRepository FileRepository { get { return new Core.Data.Sqlite.FileRepository(Instance); } }
-        public override IFolderRepository FolderRepository { get { return new Core.Data.Sqlite.FolderRepository(Instance); } }
+        DbConnection Connection { get; }
+        AiplugsDbContext Context { get; }
         public SQLiteTestDb(bool migration = true)
         {
-            Instance = new SqliteConnection("DataSource=:memory:");
+            Connection = new SqliteConnection("DataSource=:memory:");
+            Connection.Open();
 
-            Instance.Open();
+            var options = new DbContextOptionsBuilder<AiplugsDbContext>()
+                    .UseSqlite(Connection)
+                    .Options;
+            Context = new AiplugsDbContext(options);
+            Context.Database.EnsureCreated();
 
-            if (migration)
-                new Core.Data.Sqlite.Migration(Instance, true).Migrate();
+            DataRepository = new DataRepository(Context, new SqliteQueryBuilder());
+            FileRepository = new FileRepository(Context);
+            FolderRepository = new FolderRepository(Context);
         }
         public override void Dispose()
         {
-            Instance.Close();
-            Instance.Dispose();
+            Context.Dispose();
+            Connection.Close();
+            Connection.Dispose();
         }
     }
     public class SqlServerTestDb : TestDbBase
     {
-        public IDbConnection Instance { get; }
-
-        public override IDataRepository DataRepository { get { return new Core.Data.Sqlite.DataRepository(Instance, new Core.Data.Sqlite.QueryBuilder()); } }
-        public override IFileRepository FileRepository { get { return new Core.Data.Sqlite.FileRepository(Instance); } }
-        public override IFolderRepository FolderRepository { get { return new Core.Data.Sqlite.FolderRepository(Instance); } }
+        IDbConnection Instance { get; }
 
         public SqlServerTestDb(string connectionString, bool migration = true)
         {

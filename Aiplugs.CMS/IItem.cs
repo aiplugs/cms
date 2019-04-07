@@ -5,11 +5,13 @@ namespace Aiplugs.CMS
 {
     public interface IItem
     {
-        long Id { get; set; }
-        JObject Data { get; set; }
-        DateTime CreatedAt { get; set; }
-        DateTime UpdatedAt { get; set; }
-        string UpdatedBy { get; set; }
-        bool IsValid { get; set; }
+        string Id { get; }
+        JToken Data { get; }
+        DateTimeOffset CreatedAt { get; }
+        DateTimeOffset UpdatedAt { get; }
+        string CreatedBy { get; }
+        string UpdatedBy { get; }
+        bool IsValid { get; }
+        string CurrentId { get; set; }
     }
 }

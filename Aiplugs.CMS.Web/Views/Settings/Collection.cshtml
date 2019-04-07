@@ -1,21 +1,88 @@
-@model Aiplugs.CMS.Collection
+@model Aiplugs.CMS.Web.ViewModels.SettingsViewModels.CollectionViewModel
 @{
-  ViewData["Title"] = $"{Model.GetDisplayName() ?? "New Collection"} | aiplugs";
-  ViewData.AddActivePage(SharedNavPages.Settings.Collections);
+    ViewData["Title"] = Model.GetDisplayName() ?? "New Collection";
+    ViewData.AddActivePage(SharedNavPages.Settings.Collections);
+    var defaultValue = @"{
+    ""$schema"":""https://schemas.aiplugs.com/cms/2017-10-27/root.json#""
+}";
+    var preiewAutocomplete = new Aiplugs.Elements.Ajax { Url = "/api/templates?keyword={0}"};
 }
 
-<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
-<script>
-  document.querySelector('aiplugs-breadcrumb').path = ['New']
-</script>
-<div>
-  <aiplugs-form action="" method="post">
-    <aiplugs-actions>
-      <input class="btn primary" type="submit" value="Save">
-      <button class="btn">Delete</button>
-    </aiplugs-actions>
-    <aiplugs-autofields schema="@Url.Content("~/schema/collection.json")" monaco-worker="/aiplugs-elements/dev/js/monaco-editor-worker-loader-proxy.js">
-      <script type="application/json">@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model))</script>
-    </aiplugs-autofields>
-  </aiplugs-form>
-</div>
+<aiplugs-blade>
+    <ul is="aiplugs-breadcrumb">
+        <li><a asp-action="Collections">Collections</a></li>
+        <li>@ViewData["Title"]</li>
+    </ul>
+    <form method="post" class="flex flex-column">
+        <aiplugs-actions>
+            <button type="submit" is="aiplugs-button" looks="block" color="primary">Save</button>
+            <button type="button" is="aiplugs-button" open="cancel-dialog">Cancel</button>
+            <template id="cancel-dialog">
+                <aiplugs-dialog>
+                    <div slot="content">
+                        <p>Really?</p>
+                    </div>
+                    <div slot="actions">
+                        <a asp-action="Collections" is="aiplugs-button">Yes</a>
+                        <a asp-action="Collections" is="aiplugs-button" looks="block" color="primary">No</a>
+                    </div>
+                </aiplugs-dialog>
+            </template>
+        </aiplugs-actions>
+        <div class="flex form-content">
+            <aiplugs-input label="Collection Name" asp-for="Name" />
+            <aiplugs-code label="Schema" name="Schema" id="Schema" required value=@(Model.Schema??defaultValue) lang="json">
+                <template>
+                    <aiplugs-blade label="Schema" wide expanded>
+                        <form class="flex flex-column">
+                            <aiplugs-actions>
+                                <button type="submit" is="aiplugs-button" looks="block" ic-put-to="//#Schema/value" with-close="aiplugs-blade">Close</button>
+                                <button type="button" is="aiplugs-button" open="#schema-cancel-dialog">Cancel</button>
+                                <template id="schema-cancel-dialog">
+                                    <aiplugs-dialog>
+                                        <p slot="content">Are you sure you want to close without save changes of Schema?</p>
+                                        <div slot="actions">
+                                            <button type="submit" is="aiplugs-button" color="warning" close="aiplugs-blade">Yes</button>
+                                            <button type="button" is="aiplugs-button" looks="block" color="primary" close="aiplugs-dialog">No</button>
+                                        </div>
+                                    </aiplugs-dialog>
+                                </template>
+                            </aiplugs-actions>
+                            <aiplugs-monaco name="value" value-from="#Schema" settings-from="#schema-monaco-config" json-schemas="https://schemas.aiplugs.com/cms/2017-10-27/root.json#"></aiplugs-monaco>
+                        </form>
+                    </aiplugs-blade>
+                </template>
+            </aiplugs-code>
+            <aiplugs-input label="Title Path" asp-for="TitlePath" placeholder="$.title" />
+            <aiplugs-input label="Display Name" asp-for="DisplayName" />
+            <aiplugs-input label="Display Order" asp-for="DisplayOrder" />
+            <aiplugs-input label="Preview Template" asp-for="PreviewTemplate" ajax="@preiewAutocomplete"/>
+            <aiplugs-array label="Procedures" name="Procedures[{0}]">
+                <template>
+                    <aiplugs-array-item label="Procedure">
+                        <aiplugs-input label="Name" name="Name" />
+                        <aiplugs-input label="Dll Path" name="DllPath" />
+                        <aiplugs-input label="Type Name" name="TypeName" />
+                    </aiplugs-array-item>
+                </template>
+                @foreach (var procedure in Model.Procedures)
+                {
+                    <aiplugs-array-item label="Procedure">
+                        <aiplugs-input label="Name" name="Name" value=@procedure.Name />
+                        <aiplugs-input label="Dll Path" name="DllPath" value=@procedure.DllPath />
+                        <aiplugs-input label="Type Name" name="TypeName" value=@procedure.TypeName />
+                    </aiplugs-array-item>
+                }
+            </aiplugs-array>
+        </div>
+    </form>
+</aiplugs-blade>
+
+@section Scripts
+{
+    <script id="schema-monaco-config" type="application/json">
+        {
+            "language":"json"
+        }
+    </script>
+}

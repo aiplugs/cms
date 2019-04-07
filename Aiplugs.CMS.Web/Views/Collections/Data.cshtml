@@ -1,36 +1,14 @@
-@model DataViewModel
+﻿@model DataViewModel
 
-<aiplugs-breadcrumb class="header" style="--icon-home:'Collections'"></aiplugs-breadcrumb>
-<div>
-  <aiplugs-form action="" method="post">
-    <aiplugs-actions>
-      <input class="btn primary" type="submit" value="Save">
-      @if (Model.Data != null) {
-        <button class="btn">Delete</button>
-      }
-    </aiplugs-actions>
-    <aiplugs-autofields schema="./$schema">
-      @if (Model.Data != null) {
-        <script type="application/json">@Html.Raw(Model.Data.ToString())</script>        
-      }
-    </aiplugs-autofields>
-  </aiplugs-form>
-</div>
-
-@section Scripts {
-<script>
-  document.querySelector('aiplugs-breadcrumb').path = ['New']
-  $("aiplugs-form").submit(e => {
-    e.preventDefault()
-    const value = e.target.value
-    fetch('@Model.Uri', {
-      method: 'post',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value)
-    }).then(res => {
-      location.assign(res.headers.get('Location'));
-    })
-  })
-</script>
+@{
+    Layout = null;
 }
+
+<aiplugs-blade label="Preview" expanded>
+        <aiplugs-actions>
+            <a is="aiplugs-button" looks="block" color="primary" 
+                asp-action="Edit" asp-route-name="@Model.CollectionName" asp-route-id="@Model.Item.Id">Edit</a>
+        </aiplugs-actions>
+        <iframe src="/preview/data/@Model.CollectionName/@Model.Item.Id" class="flex"></iframe>
+</aiplugs-blade>
+

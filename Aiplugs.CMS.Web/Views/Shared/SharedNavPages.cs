@@ -1,43 +1,44 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System;
 
 namespace Aiplugs.CMS.Web.Views.Shared
 {
-  public static class SharedNavPages
-  {
-    public static string ActivePageKey => "ActivePage";
-
-    public static string Index => "Index";
-    public static string Files => "Files";
-    public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
-    public static string FilesNavClass(ViewContext viewContext) => PageNavClass(viewContext, Files);
-
-    public static class Settings
+    public static class SharedNavPages
     {
-      public static string AppSettings => "Settings_AppSettings";
-      public static string Users => "Settings_Users";
-      public static string Collections => "Settings_Collections";
-      public static string AppSettingsNavClass(ViewContext viewContext) => PageNavClass(viewContext, AppSettings);
-      public static string UsersNavClass(ViewContext viewContext) => PageNavClass(viewContext, Users);
-      public static string CollectionsNavClass(ViewContext viewContext) => PageNavClass(viewContext, Collections);
-    }
+        public static string ActivePageKey => "ActivePage";
 
-    public static class Collections
-    {
-      public static string ResolveName(string collectionName) => $"Collections_{collectionName}";
-      public static string NavClass(ViewContext viewContext, string collectionName) => PageNavClass(viewContext, ResolveName(collectionName));
-    }
+        public static string Index => "Index";
+        public static string Files => "Files";
+        public static string Templates => "Templates";
+        public static string Jobs => "Jobs";
+        public static bool IndexNavActive(ViewContext viewContext) => PageNavActive(viewContext, Index);
+        public static bool FilesNavActive(ViewContext viewContext) => PageNavActive(viewContext, Files); 
+        public static bool TemplatesNavActive(ViewContext viewContext) => PageNavActive(viewContext, Templates);
+        public static bool JobsNavActive(ViewContext viewContext) => PageNavActive(viewContext, Jobs);
 
-    public static string PageNavClass(ViewContext viewContext, string page)
-    {
-      var activePage = viewContext.ViewData["ActivePage"] as string;
-      return string.Equals(activePage, page, StringComparison.OrdinalIgnoreCase) ? "active" : null;
-    }
+        public static class Settings
+        {
+            public static string AppSettings => "Settings_AppSettings";
+            public static string Users => "Settings_Users";
+            public static string Collections => "Settings_Collections";
+            public static bool AppSettingsNavActive(ViewContext viewContext) => PageNavActive(viewContext, AppSettings);
+            public static bool UsersNavActive(ViewContext viewContext) => PageNavActive(viewContext, Users);
+            public static bool CollectionsNavActive(ViewContext viewContext) => PageNavActive(viewContext, Collections);
+        }
 
-    public static void AddActivePage(this ViewDataDictionary viewData, string activePage) => viewData[ActivePageKey] = activePage;
-  }
+        public static class Collections
+        {
+            public static string ResolveName(string collectionName) => $"Collections_{collectionName}";
+            public static bool NavActive(ViewContext viewContext, string collectionName) => PageNavActive(viewContext, ResolveName(collectionName));
+        }
+        
+        public static bool PageNavActive(ViewContext viewContext, string page)
+        {
+            var activePage = viewContext.ViewData["ActivePage"] as string;
+            return string.Equals(activePage, page, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static void AddActivePage(this ViewDataDictionary viewData, string activePage) => viewData[ActivePageKey] = activePage;
+    }
 }

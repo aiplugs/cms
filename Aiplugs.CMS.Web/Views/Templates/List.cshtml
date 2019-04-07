@@ -1,0 +1,27 @@
+﻿@model IEnumerable<Aiplugs.CMS.Template>
+@{
+    ViewData["Title"] = "Templates";
+    ViewData.AddActivePage(SharedNavPages.Templates);
+
+}
+
+<aiplugs-blade label="Templates">
+    <aiplugs-actions>
+        <a asp-action="New" is="aiplugs-button" looks="block">Create New</a>
+    </aiplugs-actions>
+    <aiplugs-list label-name="Name*" label-lastmodified="Last Modified">
+        @foreach (var template in Model)
+        {
+            <aiplugs-list-item name="Items[]" item="@template.Id">
+                <aiplugs-list-column class="flex">
+                    <a asp-action="Edit" asp-route-id="@template.Id">
+                        @template.Name
+                    </a>
+                </aiplugs-list-column>
+                <aiplugs-list-column class="text-small">
+                    @template.LastModifiedAt.ToLocalTime().DateTime
+                </aiplugs-list-column>
+            </aiplugs-list-item>
+        }
+    </aiplugs-list>
+</aiplugs-blade>

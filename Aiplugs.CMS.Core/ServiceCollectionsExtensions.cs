@@ -1,9 +1,8 @@
 using System;
-using System.Data;
-using Aiplugs.CMS.Core.Data;
 using Aiplugs.CMS.Core.Models;
 using Aiplugs.CMS.Core.Services;
-using Aiplugs.Functions.Core;
+using Aiplugs.CMS.Data.QueryBuilders;
+using Aiplugs.CMS.Data.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aiplugs.CMS.Core
@@ -14,22 +13,29 @@ namespace Aiplugs.CMS.Core
         {
             var opts = options(new OptionsBuilder());
 
-            services.AddTransient<IMigration>(provider => opts.MigrationFactory(provider.GetRequiredService<IDbConnection>()));
-            services.AddTransient<IDataRepository>(provider => opts.DataRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
-            services.AddTransient<IFolderRepository>(provider => opts.FolderRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
-            services.AddTransient<IFileRepository>(provider => opts.FileRepositoryFactory(provider.GetRequiredService<IDbConnection>()));
+            //services.AddTransient<IMigration>(provider => opts.MigrationFactory(provider.GetRequiredService<IDbConnection>()));
+            services.AddTransient<IQueryBuilder, SqliteQueryBuilder>();
+            services.AddTransient<IDataRepository, DataRepository>();
+            services.AddTransient<IFolderRepository, FolderRepository>();
+            services.AddTransient<IFileRepository, FileRepository>();
             services.AddTransient<ISettingsRepository, SettingsRepository>();
+            services.AddTransient<ITemplateRepository, TemplateRepository>();
+            services.AddTransient<IJobRepository, JobRepository>();
             services.AddTransient<IAppConfiguration, AppConfiguration>();
-            services.AddTransient<IContextFactory<IContextParameters>, ContextFactory>();
+            services.AddTransient<IContextFactory, ContextFactory>();
             services.AddTransient<ILockService, LockService>();
-            services.AddTransient<IUserResolver, CurrentUserResolver>();
-            services.AddTransient<IProcedureResolver, ProcedureSerivce>();
+            services.AddTransient<IUserResolver>(_ => new StaticUserResolver(Guid.Empty.ToString()));
+            services.AddSingleton<IJobRegistory, JobRegistory>();
+            services.AddTransient<IProcedureService, ProcedureSerivce>();
             services.AddTransient<IValidationService, ValidationService>();
             services.AddTransient<ISettingsService, SettingsService>();
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<IDataService, DataService>();
+            services.AddTransient<IJobService, JobService>();
+            services.AddTransient<ITemplateService, TemplateService>();
+            services.AddHostedService<JobHostedService>();
 
-            services.AddAiplugsFunctions(_ => opts.FunctionOptionsBuilder);
+            //services.AddAiplugsFunctions(_ => opts.FunctionOptionsBuilder);
 
             return services;
         }

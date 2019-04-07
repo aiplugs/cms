@@ -1,18 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Aiplugs.CMS.Core;
+using Aiplugs.CMS.Data;
+using Aiplugs.CMS.Data.Entities;
+using Aiplugs.CMS.Web.Filters;
+using Aiplugs.CMS.Web.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Aiplugs.CMS.Web.Data;
-using Aiplugs.CMS.Web.Models;
-using Aiplugs.CMS.Web.Filters;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Aiplugs.CMS.Core;
+using System.Globalization;
 
 namespace Aiplugs.CMS.Web
 {
@@ -25,25 +27,50 @@ namespace Aiplugs.CMS.Web
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        private CultureInfo[] supportedCultures = new[]
+        {
+            new CultureInfo("en"),
+            new CultureInfo("ja"),
+        };
+
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options => 
-                options.UseInMemoryDatabase("Aiplugs:CMS:Web"));
+            //var connection = new SqliteConnection("DataSource=:memory:");
+            //connection.Open();
+            //var options = new DbContextOptionsBuilder<AiplugsDbContext>()
+            //        .UseSqlite(connection)
+            //        .Options;
+            //var context = new AiplugsDbContext(options);
+            //context.Database.EnsureCreated();
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+            services.AddDbContext<AiplugsDbContext>();
+
+            services.AddIdentity<User, Role>()
+                .AddEntityFrameworkStores<AiplugsDbContext>()
                 .AddDefaultTokenProviders();
 
             services.AddHttpClient();
-            
-            services.AddSingleton(SampleDb.Instance);
-            
+
             services.AddAiplugsCMS(opts => opts.UseSqlite().ForceMigration());
 
             services.AddScoped<SharedDataLoad>();
-            
-            services.AddMvc();
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddTransient<IStoragePagingService, StoragePagingService>();
+
+            services.AddLocalization(options => options.ResourcesPath = "Resources");
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                options.DefaultRequestCulture = new RequestCulture("en");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddViewLocalization(
+                    LanguageViewLocationExpanderFormat.Suffix,
+                    opts => { opts.ResourcesPath = "Resources"; })
+                .AddDataAnnotationsLocalization();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,9 +84,14 @@ namespace Aiplugs.CMS.Web
             else
             {
                 app.UseExceptionHandler("/Default/Error");
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
+
             app.UseStaticFiles();
+
+            app.UseCookiePolicy();
 
             app.UseAuthentication();
 
@@ -71,8 +103,6 @@ namespace Aiplugs.CMS.Web
             });
 
             app.UseAiplugsCMS();
-
-            lifetime.ApplicationStopped.Register(() => SampleDb.CloseAndDispose());
         }
     }
 }

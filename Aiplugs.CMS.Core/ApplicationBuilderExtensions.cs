@@ -1,4 +1,3 @@
-using Aiplugs.Functions.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,12 +9,12 @@ namespace Aiplugs.CMS.Core
         {
             var services = app.ApplicationServices;
             
-            var migration = services.GetRequiredService<IMigration>();
+            //var migration = services.GetRequiredService<IMigration>();
 
-            if (migration.NeedMigrate())
-                migration.Migrate();
+            //if (migration.NeedMigrate())
+            //    migration.Migrate();
 
-            app.UseAiplugsFunctions<IContextParameters>();
+            //app.UseAiplugsFunctions<IContextParameters>();
 
             return app;
         }

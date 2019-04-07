@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Aiplugs.Functions.Core;
 using Microsoft.AspNetCore.Http;
 
 namespace Aiplugs.CMS.Core.Services

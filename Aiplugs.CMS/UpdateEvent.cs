@@ -4,7 +4,7 @@ namespace Aiplugs.CMS
 {
     public class UpdateEvent : Event
     {
-        public UpdateEvent(long id, DateTime trackAt) 
+        public UpdateEvent(string id, DateTimeOffset trackAt) 
             : base("Update", id, trackAt)
         {}
     }

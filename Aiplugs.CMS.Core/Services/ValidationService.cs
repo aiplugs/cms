@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Aiplugs.CMS.Core.Data;
+using Aiplugs.CMS.Data.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -20,7 +20,7 @@ namespace Aiplugs.CMS.Core.Services
             _cache = memoryCache;
             _factory = httpClientFactory;
         }
-        public async Task<bool> ValidateAsync(Uri schemaUri, JObject data)
+        public async Task<bool> ValidateAsync(Uri schemaUri, JToken data)
         {
             if (_cache.TryGetValue(schemaUri.ToString(), out string json) == false)
             {
@@ -46,7 +46,7 @@ namespace Aiplugs.CMS.Core.Services
             }
         }
 
-        public async Task<bool> ValidateAsync(string collectionName, JObject data)
+        public async Task<bool> ValidateAsync(string collectionName, JToken data)
         {
             if (string.IsNullOrEmpty(collectionName))
                 throw new ArgumentNullException(nameof(collectionName));
