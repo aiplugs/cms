@@ -130,7 +130,7 @@
     aiplugs.parseFormUrlEncoded = parse;
 }(jQuery, AiplugsElements));
 
-(function(){
+(function () {
     Intercooler.ready(function () {
         const observer = new MutationObserver(records => {
             for (let record of records) {
@@ -142,7 +142,10 @@
             }
         });
         observer.observe(document.body, { childList: true });
-    })
+    });
+}());
+
+(function(){
     $(function () {
         $('form').each(function (i, form) {
             const validation = $(form).data('validator');
@@ -150,6 +153,28 @@
                 validation.settings.ignore = validation.settings.ignore + ', .val-ignore';
             }
         })
+
+        const intersection = new IntersectionObserver((entries) => {
+            for (const e of entries) {
+                if (e.isIntersecting) {
+                    $(e.target).trigger('in-viewport');
+                }
+            }
+        });
+        const mutation = new MutationObserver(records => {
+            for (const record of records) {
+                for (const node of record.addedNodes) {
+                    if (node.nodeType === node.ELEMENT_NODE && node.classList.contains('in-viewport')) {
+                        intersection.observe(node);
+                    }
+                }
+            }
+        });
+        const elems = document.querySelectorAll('[ic-trigger-on="in-viewport"]');
+        for (const elem of elems) {
+            mutation.observe(elem.parentElement, { childList: true });
+            intersection.observe(elem);
+        }
     })
 }())
 AiplugsElements.register('aiplugs-dialog', class extends Stimulus.Controller {
@@ -160,108 +185,302 @@ AiplugsElements.register('aiplugs-dialog', class extends Stimulus.Controller {
         this.element.remove();
     }
 })
-AiplugsElements.register("aiplugs-input", class extends Stimulus.Controller {
+AiplugsElements.register("aiplugs-tinymce", class extends Stimulus.Controller {
   static get targets() {
-    return ["input", "suggestion"];
+    return ["textarea", "insertImage", "insertVideo"];
   }
   initialize() {
-    if (this.valueFrom) {
-      const el = document.querySelector(this.valueFrom);
-      if (el) {
-        this.inputTarget.value = el.value;
+    const self = this;
+    const defaultOptions = {
+      selector: '#' + this.textareaTarget.id,
+      plugins: ['paste', 'table', 'lists', 'code', 'link', 'save', 'template', 'image', 'media', 'anchor'],
+      menubar: 'edit format insert',
+      toolbar: [
+        'undo redo | formatselect | removeformat bold italic underline | alignleft aligncenter alignright | outdent indent | bullist numlist | blockquote table fileimage filevideo insert | code',
+      ],
+      templates: [],
+      paste_as_text: true,
+      resize: false,
+      height: document.body.scrollHeight - this.element.offsetTop - 110,
+      save_onsavecallback: function () { },
+      setup: function onSetup(editor) {
+        editor.addButton('fileimage', {
+          icon: 'image',
+          tooltip: 'Insert image',
+          onclick: function () {
+            self.insertImageTarget.click();
+          }
+        });
+        editor.addButton('filevideo', {
+          icon: 'media',
+          tooltip: 'Insert video',
+          onclick: function () {
+            self.insertVideoTarget.click();
+          }
+        });
+      },
+      init_instance_callback: function (editor) {
+        editor.on('Change', function () {
+          self.textareaTarget.value = editor.getContent();
+        });
+        self.disposable(() => {
+          editor.remove();
+        })
       }
-    }
-  }
-  search() {
-    const url = this.ajaxUrl.replace("{0}", this.inputTarget.value);
-    const opts = {
-      method: "GET",
-      headers: this.ajaxHeaders,
-      mode: "cors",
-      credentials: "include"
-    }
-    return fetch(url, opts).then(res => {
-      if (res.ok)
-        return res.json();
-    }).then(data => Array.isArray(data) ? data : []);
-  }
-  onInput() {
-    this.debounce('oninput', 300, () => {
-      if (this.ajaxUrl) {
-        if (this.unique)
-          this.check();
-        else
-          this.suggestion();
-      }
+    };
+    Promise.all([
+      this.getText(this.valueFrom),
+      this.getText(this.settingsFrom),
+    ]).then(values => {
+      const value = values[0] || this.textareaTarget.value;
+      const settings = JSON.parse(values[1] || '{}');
+      const options = Object.assign(defaultOptions, settings);
+      this.textareaTarget.value = value;
+      tinymce.init(options);
     });
   }
-  onBlur() {
-    if (this.ajaxUrl && !this.unique) {
-      const value = this.inputTarget.value;
-      const valueKey = this.ajaxValue;
-      const rule = this.ignoreCase ? datum => (datum[valueKey] || "").toLowerCase() === value
-        : datum => (datum[valueKey] || "") === value
-      this.search().then(data => {
-        const datum = data.find(rule) || data.find(datum => (datum[valueKey] || "").startsWith(value)) || data[0];
-        if (datum) {
-          this.inputTarget.value = datum[valueKey];
-        }
-      })
+  close() {
+    tinymce.activeEditor.remove();
+  }
+  getText(url) {
+    if (!url)
+        return new Promise(resolve => { resolve(); });
+    
+    if (url.startsWith('#')) {
+        const el = document.querySelector(url);
+        return new Promise(resolve => { resolve(el.value || el.innerText); });
     }
-  }
-  check() {
-    const value = this.inputTarget.value;
-    const valueKey = this.ajaxValue;
-    const rule = this.ignoreCase ? datum => (datum[valueKey] || "").toLowerCase() === value
-      : datum => (datum[valueKey] || "") === value
-    this.search().then(data => {
-      const duplicated = !!data.find(rule);
-      this.element.classList.toggle("aiplugs-input--duplicated", duplicated);
-      this.element.classList.toggle("aiplugs-input--unique", !duplicated);
-    })
-  }
-  suggestion() {
-    const labelKey = this.ajaxLabel;
-    const valueKey = this.ajaxValue;
-    this.search().then(data => {
-      this.suggestionTarget.innerHTML = "";
-      data.forEach(datum => {
-        const option = document.createElement("option");
-        option.innerText = datum[labelKey];
-        option.label = datum[labelKey];
-        option.value = datum[valueKey];
-        this.suggestionTarget.appendChild(option);
-      });
-    });
-  }
-  get unique() {
-    return this.data.get("unique") === "true";
-  }
-  get ignoreCase() {
-    return this.data.get("ignore-case") === "true";
-  }
-  get ajaxUrl() {
-    return this.data.get("ajax-url");
-  }
-  get ajaxHeaders() {
-    const prefix = "data-aiplugs-input-ajax-headers-";
-    return Array.from(this.element.attributes)
-      .filter(attr => attr.name.startsWith(prefix))
-      .reduce((headers, attr) => {
-        headers[attr.name.replace(prefix, "")] = attr.value;
-      }, {});
-  }
-  get ajaxLabel() {
-    return this.data.get("ajax-label") || "label";
-  }
-  get ajaxValue() {
-    return this.data.get("ajax-value") || "value";
+
+    return fetch(url, {mode:'cors',credentials:'include'}).then(res => res.text());
   }
   get valueFrom() {
-    return this.data.get("value-from");
+    return this.data.get('value-from') || '';
+  }
+  get settingsFrom() {
+      return this.data.get('settings-from') || '';
+  }
+});
+
+AiplugsElements.registerIcProxy('POST', /\/\/aiplugs-tinymce\/active\/images/, function (_, body) {
+  const data = AiplugsElements.parseFormUrlEncoded(body);
+  const src = data['src'];
+  const alt = data['alt'];
+  const title = data['title'];
+  const html = `<img src="${src}" alt="${alt} title="${title}"/>`;
+  tinymce.activeEditor.insertContent(html);
+  return '\n';
+})
+AiplugsElements.registerIcProxy('POST', /\/\/aiplugs-tinymce\/active\/videos/, function (_, body) {
+  const data = AiplugsElements.parseFormUrlEncoded(body);
+  const src = data['src'];
+  const alt = data['alt'];
+  const title = data['title'];
+  const html = `<video src="${src}" alt="${alt} title="${title}"></video>`;
+  tinymce.activeEditor.insertContent(html);
+  return '\n';
+})
+AiplugsElements.register('aiplugs-actions', class extends Stimulus.Controller {
+    initialize() {
+        this.update();
+    }
+    update() {
+        const items = this.items;
+        this.element.querySelectorAll('[when="any"]').forEach(el => {
+            el.disabled = items <= 0;
+            el.classList.toggle('--disabled', items <= 0);
+        });
+        this.element.querySelectorAll('[when="one"]').forEach(el => {
+            el.disabled = items != 1;
+            el.classList.toggle('--disabled', items != 1);
+        });
+    }
+    get items() {
+        return this.data.get('items');
+    }
+    set items(value) {
+        this.data.set('items', value);
+        this.update();
+    }
+})
+AiplugsElements.register("aiplugs-list", class extends Stimulus.Controller {
+  static get targets() {
+    return ["item"];
+  }
+  select(e) {
+    this.items.forEach(item => { item.unselect(); });
+    this.application.closestRoot(e.target, "aiplugs-list-item").select();
+  }
+  dispatchUpdate() {
+    this.throttle('change-selects', 100, () => {
+      this.element.dispatchEvent(new CustomEvent('change'));
+    })
+  }
+  get items() {
+    return this.itemTargets.map(el => this.application.resolve(el, 'aiplugs-list-item'));
+  }
+  get selectedItem() {
+    return this.items.filter(item => item.selected)[0];
+  }
+  get checkedItems() {
+    return this.items.filter(item => item.checked);
+  }
+  get electedItems() {
+    return this.items.filter(item => item.selected || item.checked);
+  }
+});
+
+AiplugsElements.register("aiplugs-list-item", class extends Stimulus.Controller {
+  static get targets() {
+    return ["checkbox"];
+  }
+  initialize() {
+    this.update();
+  }
+  update() {
+    this.element.classList.toggle("--checked", this.checked);
+    this.element.classList.toggle("--selected", this.selected);
+    this.parent('aiplugs-list').dispatchUpdate();
+  }
+  select() {
+    this.selected = true;
+  }
+  unselect() {
+    this.selected = false;
+  }
+  get checked() {
+    return this.checkboxTarget.checked;
+  }
+  set checked(value) {
+    this.checkboxTarget.checked = value;
+    this.update();
+  }
+  get selected() {
+    return this.data.get('selected') === 'true';
+  }
+  set selected(value) {
+    this.data.set('selected', value);
+    this.update();
+  }
+});
+
+
+AiplugsElements.register("aiplugs-checkbox", class extends Stimulus.Controller {
+  static get targets() {
+    return ["checkbox"];
+  }
+  initialize() {
+    this.update();
+  }
+  update() {
+    this.element.classList.toggle("aiplugs-checkbox--checked", this.checked);
+  }
+  get checked() {
+    return this.checkboxTarget.checked;
+  }
+  set checked(value) {
+    this.checkboxTarget.checked = value;
+    this.update();
   }
     setNamePrefix(prefix) {
-        this.inputTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
+        this.checkboxTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
+    }
+});
+AiplugsElements.register("aiplugs-info", class extends Stimulus.Controller {
+    static get targets() {
+        return ['detail'];
+    }
+    update(){
+        this.detailTarget.classList.toggle("--visible", this.visible);
+    }
+    toggle() {
+        this.visible = !this.visible;
+    }
+    get visible() {
+        return this.data.get('visible') === 'true';
+    }
+    set visible(value) {
+        this.data.set('visible', value);
+        this.update();
+    }
+});
+
+
+
+
+
+AiplugsElements.register('aiplugs-monaco', class extends Stimulus.Controller {
+    static get targets() {
+        return ['progress', 'textarea'];
+    }
+    initialize() {
+        require(['vs/editor/editor.main'], () => {
+            this.init();
+        });
+    }
+    init() {
+        const created = monaco.editor.onDidCreateEditor(() => {
+            this.progressTarget.remove();
+            created.dispose();
+        });
+        Promise.all([
+            this.getText(this.valueFrom),
+            this.getText(this.settingsFrom),
+        ]).then(values => {
+            const value = values[0] || this.textareaTarget.value;
+            const settings = JSON.parse(values[1] || '{}');
+            const options = Object.assign({ language: 'html' }, settings, { value: value } );
+            const editor = monaco.editor.create(this.element, options);
+            this.textareaTarget.value = value;
+            editor.getModel().onDidChangeContent(() => {
+                this.textareaTarget.value = editor.getValue();
+            })
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+                // prevent browser action;
+            });
+            window.addEventListener('resize', () => {
+                this.throttle('resize', 500, () => {
+                    editor.layout();
+                })
+            });
+            new ResizeObserver(() => {
+                this.throttle('resize', 500, () => {
+                    editor.layout();
+                })
+            }).observe(this.element);
+            this.disposable(() => {
+                editor.dispose();
+            })
+            const current = monaco.languages.json.jsonDefaults.diagnosticsOptions.schemas;
+            const additions = this.jsonSchemas.filter(uri => !current.some(schema => schema.uri === uri));
+            for (let uri of additions) {
+                fetch(uri)
+                    .then(res => res.json())
+                    .then(schema => {
+                        const schemas = monaco.languages.json.jsonDefaults.diagnosticsOptions.schemas.concat([{ uri, schema }]);
+                        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({ validate: true, schemas });
+                    })
+            }
+        })
+    }
+    getText(url) {
+        if (!url)
+            return new Promise(resolve => { resolve(); });
+        
+        if (url.startsWith('#')) {
+            const el = document.querySelector(url);
+            return new Promise(resolve => { resolve(el.value || el.innerText); });
+        }
+
+        return fetch(url, {mode:'cors',credentials:'include'}).then(res => res.text());
+    }
+    get valueFrom() {
+        return this.data.get('value-from') || '';
+    }
+    get settingsFrom() {
+        return this.data.get('settings-from') || '';
+    }
+    get jsonSchemas() {
+        return (this.data.get('json-schemas') || '').split(',').filter(uri => !!uri);
     }
 });
 AiplugsElements.register("aiplugs-dictionary", class extends Stimulus.Controller {
@@ -393,29 +612,72 @@ AiplugsElements.register("aiplugs-dictionary-item", class extends Stimulus.Contr
         this.itemValueTarget.classList.toggle("aiplugs-dictionary__item--invalid", !value);
     }
 });
-AiplugsElements.register('aiplugs-actions', class extends Stimulus.Controller {
+AiplugsElements.register('aiplugs-modal', class extends Stimulus.Controller {
+    close() {
+        this.element.remove();
+    }
+});
+AiplugsElements.register('aiplugs-nav', class extends Stimulus.Controller {
+    initialize() {
+        this.force = this.fold;
+        window.addEventListener('resize', () => {
+            this.resize();
+        })
+        this.update();
+        this.resize();
+    }
+    toggle() {
+        this.fold = !this.fold;
+        this.force = !this.force;
+        this.update();
+    }
+    resize() {
+        if (!this.force) {   
+            this.fold = window.innerWidth < this.threshold;
+            this.update();
+        }
+    }
+    update() {
+        this.element.classList.toggle('--fold', this.fold);
+        this.element.classList.toggle('--force', this.force);
+    }
+    get fold() {
+        return sessionStorage.getItem('aiplugs-nav-fold') === 'true';
+    }
+    set fold(value) {
+        sessionStorage.setItem('aiplugs-nav-fold', value);
+    }
+    get force() {
+        return sessionStorage.getItem('aiplugs-nav-force') === 'true';
+    }
+    set force(value) {
+        sessionStorage.setItem('aiplugs-nav-force', value);
+    }
+    get threshold() {
+        return parseInt(this.data.get('threshold') || 800);
+    }
+})
+AiplugsElements.register('aiplugs-blade', class extends Stimulus.Controller {
     initialize() {
         this.update();
     }
+    close() {
+        this.element.remove();
+    }
+    toggle() {
+        this.expanded = !this.expanded;
+    }
     update() {
-        const items = this.items;
-        this.element.querySelectorAll('[when="any"]').forEach(el => {
-            el.disabled = items <= 0;
-            el.classList.toggle('--disabled', items <= 0);
-        });
-        this.element.querySelectorAll('[when="one"]').forEach(el => {
-            el.disabled = items != 1;
-            el.classList.toggle('--disabled', items != 1);
-        });
+        this.element.classList.toggle('--expanded', this.expanded);
     }
-    get items() {
-        return this.data.get('items');
+    get expanded() {
+        return this.data.get('expanded') === 'true';
     }
-    set items(value) {
-        this.data.set('items', value);
+    set expanded(value) {
+        this.data.set('expanded', value);
         this.update();
     }
-})
+});
 AiplugsElements.register("aiplugs-code", class extends Stimulus.Controller {
     static get targets() {
         return ["view","input"];
@@ -468,334 +730,110 @@ AiplugsElements.register("aiplugs-code", class extends Stimulus.Controller {
         this.inputTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
     }
 });
-AiplugsElements.register("aiplugs-textarea", class extends Stimulus.Controller {
-    static get targets() {
-        return ["textarea"];
-    }
-    connect() {
-        const input = this.textareaTarget;
-        const style = getComputedStyle(input);
-        this._diffWidth = parseInt(style.paddingLeft) + parseInt(style.paddingRight);
-        this._diffHeight = -(parseInt(style.paddingBottom) + parseInt(style.paddingTop));
-        const next = window.requestIdleCallback || (callback => { setTimeout(callback, 100); });
-        next(() => {
-          this.updateHeight();
-        })
-    }
-    updateHeight() {
-        const container = this.element;
-        const input = this.textareaTarget;
-        const len = (input.value || '').length;
-        const style = getComputedStyle(input);
-        const scrollTop = container.scrollTop;
-
-        if (this._len >= len) {
-          input.style.height = 'auto';
-        }
-
-        if (input.scrollHeight > input.clientHeight) {
-          input.style.height = input.scrollHeight + this._diffHeight + 'px';
-        }
-
-        this._len = len;
-        container.scrollTop = scrollTop;
-    }
-    setNamePrefix(prefix) {
-        this.textareaTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
-    }
-});
-AiplugsElements.register('aiplugs-monaco', class extends Stimulus.Controller {
-    static get targets() {
-        return ['progress', 'textarea'];
-    }
-    initialize() {
-        require(['vs/editor/editor.main'], () => {
-            this.init();
-        });
-    }
-    init() {
-        const created = monaco.editor.onDidCreateEditor(() => {
-            this.progressTarget.remove();
-            created.dispose();
-        });
-        Promise.all([
-            this.getText(this.valueFrom),
-            this.getText(this.settingsFrom),
-        ]).then(values => {
-            const value = values[0] || this.textareaTarget.value;
-            const settings = JSON.parse(values[1] || '{}');
-            const options = Object.assign({ language: 'html' }, settings, { value: value } );
-            const editor = monaco.editor.create(this.element, options);
-            this.textareaTarget.value = value;
-            editor.getModel().onDidChangeContent(() => {
-                this.textareaTarget.value = editor.getValue();
-            })
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
-                // prevent browser action;
-            });
-            window.addEventListener('resize', () => {
-                this.throttle('resize', 500, () => {
-                    editor.layout();
-                })
-            });
-            new ResizeObserver(() => {
-                this.throttle('resize', 500, () => {
-                    editor.layout();
-                })
-            }).observe(this.element);
-            this.disposable(() => {
-                editor.dispose();
-            })
-            const current = monaco.languages.json.jsonDefaults.diagnosticsOptions.schemas;
-            const additions = this.jsonSchemas.filter(uri => !current.some(schema => schema.uri === uri));
-            for (let uri of additions) {
-                fetch(uri)
-                    .then(res => res.json())
-                    .then(schema => {
-                        const schemas = monaco.languages.json.jsonDefaults.diagnosticsOptions.schemas.concat([{ uri, schema }]);
-                        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({ validate: true, schemas });
-                    })
-            }
-        })
-    }
-    getText(url) {
-        if (!url)
-            return new Promise(resolve => { resolve(); });
-        
-        if (url.startsWith('#')) {
-            const el = document.querySelector(url);
-            return new Promise(resolve => { resolve(el.value || el.innerText); });
-        }
-
-        return fetch(url, {mode:'cors',credentials:'include'}).then(res => res.text());
-    }
-    get valueFrom() {
-        return this.data.get('value-from') || '';
-    }
-    get settingsFrom() {
-        return this.data.get('settings-from') || '';
-    }
-    get jsonSchemas() {
-        return (this.data.get('json-schemas') || '').split(',').filter(uri => !!uri);
-    }
-});
-AiplugsElements.register('aiplugs-blade', class extends Stimulus.Controller {
-    initialize() {
-        this.update();
-    }
-    close() {
-        this.element.remove();
-    }
-    toggle() {
-        this.expanded = !this.expanded;
-    }
-    update() {
-        this.element.classList.toggle('--expanded', this.expanded);
-    }
-    get expanded() {
-        return this.data.get('expanded') === 'true';
-    }
-    set expanded(value) {
-        this.data.set('expanded', value);
-        this.update();
-    }
-});
-AiplugsElements.register("aiplugs-tinymce", class extends Stimulus.Controller {
+AiplugsElements.register("aiplugs-input", class extends Stimulus.Controller {
   static get targets() {
-    return ["textarea", "insertImage", "insertVideo"];
+    return ["input", "suggestion"];
   }
   initialize() {
-    const self = this;
-    const defaultOptions = {
-      selector: '#' + this.textareaTarget.id,
-      plugins: ['paste', 'table', 'lists', 'code', 'link', 'save', 'template', 'image', 'media', 'anchor'],
-      menubar: 'edit format insert',
-      toolbar: [
-        'undo redo | formatselect | removeformat bold italic underline | alignleft aligncenter alignright | outdent indent | bullist numlist | blockquote table fileimage filevideo insert | code',
-      ],
-      templates: [],
-      paste_as_text: true,
-      resize: false,
-      height: document.body.scrollHeight - this.element.offsetTop - 110,
-      save_onsavecallback: function () { },
-      setup: function onSetup(editor) {
-        editor.addButton('fileimage', {
-          icon: 'image',
-          tooltip: 'Insert image',
-          onclick: function () {
-            self.insertImageTarget.click();
-          }
-        });
-        editor.addButton('filevideo', {
-          icon: 'media',
-          tooltip: 'Insert video',
-          onclick: function () {
-            self.insertVideoTarget.click();
-          }
-        });
-      },
-      init_instance_callback: function (editor) {
-        editor.on('Change', function () {
-          self.textareaTarget.value = editor.getContent();
-        });
-        self.disposable(() => {
-          editor.remove();
-        })
+    if (this.valueFrom) {
+      const el = document.querySelector(this.valueFrom);
+      if (el) {
+        this.inputTarget.value = el.value;
       }
-    };
-    Promise.all([
-      this.getText(this.valueFrom),
-      this.getText(this.settingsFrom),
-    ]).then(values => {
-      const value = values[0] || this.textareaTarget.value;
-      const settings = JSON.parse(values[1] || '{}');
-      const options = Object.assign(defaultOptions, settings);
-      this.textareaTarget.value = value;
-      tinymce.init(options);
+    }
+  }
+  search() {
+    const url = this.ajaxUrl.replace("{0}", this.inputTarget.value);
+    const opts = {
+      method: "GET",
+      headers: this.ajaxHeaders,
+      mode: "cors",
+      credentials: "include"
+    }
+    return fetch(url, opts).then(res => {
+      if (res.ok)
+        return res.json();
+    }).then(data => Array.isArray(data) ? data : []);
+  }
+  onInput() {
+    this.debounce('oninput', 300, () => {
+      if (this.ajaxUrl) {
+        if (this.unique)
+          this.check();
+        else
+          this.suggestion();
+      }
     });
   }
-  close() {
-    tinymce.activeEditor.remove();
-  }
-  getText(url) {
-    if (!url)
-        return new Promise(resolve => { resolve(); });
-    
-    if (url.startsWith('#')) {
-        const el = document.querySelector(url);
-        return new Promise(resolve => { resolve(el.value || el.innerText); });
+  onBlur() {
+    if (this.ajaxUrl && !this.unique) {
+      const value = this.inputTarget.value;
+      const valueKey = this.ajaxValue;
+      const rule = this.ignoreCase ? datum => (datum[valueKey] || "").toLowerCase() === value
+        : datum => (datum[valueKey] || "") === value
+      this.search().then(data => {
+        const datum = data.find(rule) || data.find(datum => (datum[valueKey] || "").startsWith(value)) || data[0];
+        if (datum) {
+          this.inputTarget.value = datum[valueKey];
+        }
+      })
     }
-
-    return fetch(url, {mode:'cors',credentials:'include'}).then(res => res.text());
   }
-  get valueFrom() {
-    return this.data.get('value-from') || '';
-  }
-  get settingsFrom() {
-      return this.data.get('settings-from') || '';
-  }
-});
-
-AiplugsElements.registerIcProxy('POST', /\/\/aiplugs-tinymce\/active\/images/, function (_, body) {
-  const data = AiplugsElements.parseFormUrlEncoded(body);
-  const src = data['src'];
-  const alt = data['alt'];
-  const title = data['title'];
-  const html = `<img src="${src}" alt="${alt} title="${title}"/>`;
-  tinymce.activeEditor.insertContent(html);
-  return '\n';
-})
-AiplugsElements.registerIcProxy('POST', /\/\/aiplugs-tinymce\/active\/videos/, function (_, body) {
-  const data = AiplugsElements.parseFormUrlEncoded(body);
-  const src = data['src'];
-  const alt = data['alt'];
-  const title = data['title'];
-  const html = `<video src="${src}" alt="${alt} title="${title}"></video>`;
-  tinymce.activeEditor.insertContent(html);
-  return '\n';
-})
-AiplugsElements.register("aiplugs-list", class extends Stimulus.Controller {
-  static get targets() {
-    return ["item"];
-  }
-  select(e) {
-    this.items.forEach(item => { item.unselect(); });
-    this.application.closestRoot(e.target, "aiplugs-list-item").select();
-  }
-  dispatchUpdate() {
-    this.throttle('change-selects', 100, () => {
-      this.element.dispatchEvent(new CustomEvent('change'));
+  check() {
+    const value = this.inputTarget.value;
+    const valueKey = this.ajaxValue;
+    const rule = this.ignoreCase ? datum => (datum[valueKey] || "").toLowerCase() === value
+      : datum => (datum[valueKey] || "") === value
+    this.search().then(data => {
+      const duplicated = !!data.find(rule);
+      this.element.classList.toggle("aiplugs-input--duplicated", duplicated);
+      this.element.classList.toggle("aiplugs-input--unique", !duplicated);
     })
   }
-  get items() {
-    return this.itemTargets.map(el => this.application.resolve(el, 'aiplugs-list-item'));
+  suggestion() {
+    const labelKey = this.ajaxLabel;
+    const valueKey = this.ajaxValue;
+    this.search().then(data => {
+      this.suggestionTarget.innerHTML = "";
+      data.forEach(datum => {
+        const option = document.createElement("option");
+        option.innerText = datum[labelKey];
+        option.label = datum[labelKey];
+        option.value = datum[valueKey];
+        this.suggestionTarget.appendChild(option);
+      });
+    });
   }
-  get selectedItem() {
-    return this.items.filter(item => item.selected)[0];
+  get unique() {
+    return this.data.get("unique") === "true";
   }
-  get checkedItems() {
-    return this.items.filter(item => item.checked);
+  get ignoreCase() {
+    return this.data.get("ignore-case") === "true";
   }
-  get electedItems() {
-    return this.items.filter(item => item.selected || item.checked);
+  get ajaxUrl() {
+    return this.data.get("ajax-url");
   }
+  get ajaxHeaders() {
+    const prefix = "data-aiplugs-input-ajax-headers-";
+    return Array.from(this.element.attributes)
+      .filter(attr => attr.name.startsWith(prefix))
+      .reduce((headers, attr) => {
+        headers[attr.name.replace(prefix, "")] = attr.value;
+      }, {});
+  }
+  get ajaxLabel() {
+    return this.data.get("ajax-label") || "label";
+  }
+  get ajaxValue() {
+    return this.data.get("ajax-value") || "value";
+  }
+  get valueFrom() {
+    return this.data.get("value-from");
+  }
+    setNamePrefix(prefix) {
+        this.inputTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
+    }
 });
-
-AiplugsElements.register("aiplugs-list-item", class extends Stimulus.Controller {
-  static get targets() {
-    return ["checkbox"];
-  }
-  initialize() {
-    this.update();
-  }
-  update() {
-    this.element.classList.toggle("--checked", this.checked);
-    this.element.classList.toggle("--selected", this.selected);
-    this.parent('aiplugs-list').dispatchUpdate();
-  }
-  select() {
-    this.selected = true;
-  }
-  unselect() {
-    this.selected = false;
-  }
-  get checked() {
-    return this.checkboxTarget.checked;
-  }
-  set checked(value) {
-    this.checkboxTarget.checked = value;
-    this.update();
-  }
-  get selected() {
-    return this.data.get('selected') === 'true';
-  }
-  set selected(value) {
-    this.data.set('selected', value);
-    this.update();
-  }
-});
-
-
-AiplugsElements.register('aiplugs-nav', class extends Stimulus.Controller {
-    initialize() {
-        this.force = this.fold;
-        window.addEventListener('resize', () => {
-            this.resize();
-        })
-        this.update();
-        this.resize();
-    }
-    toggle() {
-        this.fold = !this.fold;
-        this.force = !this.force;
-        this.update();
-    }
-    resize() {
-        if (!this.force) {   
-            this.fold = window.innerWidth < this.threshold;
-            this.update();
-        }
-    }
-    update() {
-        this.element.classList.toggle('--fold', this.fold);
-        this.element.classList.toggle('--force', this.force);
-    }
-    get fold() {
-        return sessionStorage.getItem('aiplugs-nav-fold') === 'true';
-    }
-    set fold(value) {
-        sessionStorage.setItem('aiplugs-nav-fold', value);
-    }
-    get force() {
-        return sessionStorage.getItem('aiplugs-nav-force') === 'true';
-    }
-    set force(value) {
-        sessionStorage.setItem('aiplugs-nav-force', value);
-    }
-    get threshold() {
-        return parseInt(this.data.get('threshold') || 800);
-    }
-})
 AiplugsElements.register("aiplugs-array", class extends Stimulus.Controller {
     static get targets() {
         return ["items", "add", "item"];
@@ -928,41 +966,11 @@ AiplugsElements.register("aiplugs-select", class extends Stimulus.Controller {
         }
     }
 });
-AiplugsElements.register("aiplugs-checkbox", class extends Stimulus.Controller {
-  static get targets() {
-    return ["checkbox"];
-  }
-  initialize() {
-    this.update();
-  }
-  update() {
-    this.element.classList.toggle("aiplugs-checkbox--checked", this.checked);
-  }
-  get checked() {
-    return this.checkboxTarget.checked;
-  }
-  set checked(value) {
-    this.checkboxTarget.checked = value;
-    this.update();
-  }
-    setNamePrefix(prefix) {
-        this.checkboxTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
-    }
-});
 AiplugsElements.register("aiplugs-tag", class extends Stimulus.Controller {
     static get targets() {
         return ["template","input","suggestion","item"];
     }
-    // initialize() {
-    //     this.element.closest("form").addEventListener("submit", e => {
-    //         if (!this.validate(true)) {
-    //             e.preventDefault();
-    //             return false;
-    //         }
-    //     });
-    // }
     update() {
-        // this.element.classList.toggle("aiplugs-tag--invalid", !this.valid);
         this.element.classList.toggle("aiplugs-tag--focus-last", this.focusLast);
     }
     onKeydown(e) {
@@ -1138,26 +1146,39 @@ AiplugsElements.register("aiplugs-tag-item", class extends Stimulus.Controller {
         this.labelTarget.innerText = value;
     }
 });
-AiplugsElements.register('aiplugs-modal', class extends Stimulus.Controller {
-    close() {
-        this.element.remove();
-    }
-});
-AiplugsElements.register("aiplugs-info", class extends Stimulus.Controller {
+AiplugsElements.register("aiplugs-textarea", class extends Stimulus.Controller {
     static get targets() {
-        return ['detail'];
+        return ["textarea"];
     }
-    update(){
-        this.detailTarget.classList.toggle("--visible", this.visible);
+    connect() {
+        const input = this.textareaTarget;
+        const style = getComputedStyle(input);
+        this._diffWidth = parseInt(style.paddingLeft) + parseInt(style.paddingRight);
+        this._diffHeight = -(parseInt(style.paddingBottom) + parseInt(style.paddingTop));
+        const next = window.requestIdleCallback || (callback => { setTimeout(callback, 100); });
+        next(() => {
+          this.updateHeight();
+        })
     }
-    toggle() {
-        this.visible = !this.visible;
+    updateHeight() {
+        const container = this.element;
+        const input = this.textareaTarget;
+        const len = (input.value || '').length;
+        const style = getComputedStyle(input);
+        const scrollTop = container.scrollTop;
+
+        if (this._len >= len) {
+          input.style.height = 'auto';
+        }
+
+        if (input.scrollHeight > input.clientHeight) {
+          input.style.height = input.scrollHeight + this._diffHeight + 'px';
+        }
+
+        this._len = len;
+        container.scrollTop = scrollTop;
     }
-    get visible() {
-        return this.data.get('visible') === 'true';
-    }
-    set visible(value) {
-        this.data.set('visible', value);
-        this.update();
+    setNamePrefix(prefix) {
+        this.textareaTarget.name = prefix + '.' + (this.data.get('nameTemplate') || '');
     }
 });

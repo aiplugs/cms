@@ -38,7 +38,7 @@
         <aiplugs-nav-item icon="~/images/icon.svg" href="~/">
             <span class="logo">aiplugs cms</span>
         </aiplugs-nav-item>
-        <aiplugs-nav-item icon="fa fa-bars" class="fold-action">
+        <aiplugs-nav-item icon="fa fa-bars" is="aiplugs-nav-fold">
         </aiplugs-nav-item>
         <aiplugs-nav-item icon="fa fa-folder" href="~/files" active="@SharedNavPages.FilesNavActive(ViewContext)">
             <span>Files</span>
@@ -51,7 +51,7 @@
             {
                 <aiplugs-nav-item href="@Url.Action("List", "Collections", new { name = collection.Name})"
                                   active="@SharedNavPages.Collections.NavActive(ViewContext, collection.Name)">@collection.GetDisplayName()</aiplugs-nav-item>
-                            }
+            }
         </aiplugs-nav-items>
         <aiplugs-nav-item icon="fas fa-industry" href="~/jobs" active="@SharedNavPages.JobsNavActive(ViewContext)">
             <span>Jobs</span>
@@ -73,14 +73,6 @@
     </aiplugs-nav>
     @RenderBody()
     @RenderSection("Scripts", required: false)
-    <script>
-        $(document).on('beforeAjaxSend.ic', function (_, ajaxSetting, elt) {
-            elt = elt[0];
-            if (ajaxSetting.type.toLowerCase() === 'post' && elt.name && elt.value) {
-                const prefix = (ajaxSetting.data || '').length > 0 ? '&' : '';
-                ajaxSetting.data += prefix + elt.name + '=' + encodeURIComponent(elt.value);
-            }
-        })
-    </script>
+    <script src="~/js/site.js"></script>
 </body>
 </html>

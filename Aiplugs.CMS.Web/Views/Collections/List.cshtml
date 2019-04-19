@@ -23,13 +23,13 @@
         <aiplugs-actions>
             <a href="/collections/@Model.CollectionName/@@new" is="aiplugs-button" looks="block">Create New</a>
             <button is="aiplugs-button" name="exec" value="ValidateAll"
-                    ic-post-to="/collections/@Model.CollectionName" ic-target="#detail" ic-include="#collections">
+                    ic-post-to="/jobs" ic-target="#detail" ic-include="#collections">
                 Validate All
             </button>
             @foreach (var procedure in Model.Procedures)
             {
                 <button type="button" is="aiplugs-button" name="exec" value="@procedure.Name"
-                        ic-post-to="/collections/@Model.CollectionName" ic-target="#detail" ic-include="#collections">
+                        ic-post-to="/jobs" ic-target="#detail" ic-include="#collections">
                     @procedure.Name
                 </button>
             }

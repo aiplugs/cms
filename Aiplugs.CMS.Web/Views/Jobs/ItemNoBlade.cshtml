@@ -2,6 +2,7 @@
 @{
     Layout = null;
     var job = Model;
+    var parameters = job.GetParameters<Aiplugs.CMS.Core.Models.ContextParameters>();
     var status = job.Status == JobStatus.Running ? "info"
                : job.Status == JobStatus.Success ? "success"
                : job.Status == JobStatus.Faild ? "danger"
@@ -48,6 +49,29 @@
                 <tr>
                     <th>Staus</th>
                     <td>@job.Status</td>
+                </tr>
+                <tr>
+                    <th>Params</th>
+                    <td>
+                        <table>
+                            <tr>
+                                <th>Collection</th>
+                                <td>@parameters.CollectionName</td>
+                            </tr>
+                            <tr>
+                                <th>Search Method</th>
+                                <td>@parameters.SearchMethod.ToString()</td>
+                            </tr>
+                            <tr>
+                                <th>Search Query</th>
+                                <td>@parameters.SearchQuery</td>
+                            </tr>
+                            <tr>
+                                <th>Items</th>
+                                <td>@string.Join(",", parameters.Items)</td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
                 <tr>
                     <th>Start At</th>

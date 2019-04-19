@@ -24,7 +24,7 @@ namespace Aiplugs.CMS.Data.Repositories
 
         Task RemoveAsync(string id);
 
-        Task UpdateDataAsync(string id, string data, string currentId, string userId, DateTimeOffset datetime);
+        Task UpdateDataAsync(string id, string data, string currentId, string userId, DateTimeOffset datetime, bool? isValid = null);
 
         Task UpdateStatusAsync(string id, bool isValid, string currentId);
 

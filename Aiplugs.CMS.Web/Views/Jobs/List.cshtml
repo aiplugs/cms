@@ -1,26 +1,45 @@
-﻿@model IEnumerable<Job>
+﻿@model JobViewModel
 @{
     ViewData.AddActivePage(SharedNavPages.Jobs);
+    var first = Model.Jobs.FirstOrDefault();
 }
-<aiplugs-blade label="Jobs">
+<aiplugs-blade label="Jobs" expanded>
     <aiplugs-actions>
         <a asp-action="List" is="aiplugs-button">Reload</a>
     </aiplugs-actions>
     <aiplugs-list label-name="Procedure*" label-status="Status" label-start-at="Start At">
-        @foreach (var job in Model)
+        @if (Model.Job != null)
         {
-        <aiplugs-list-item name="jobs[]" item="@job.Id">
-            <aiplugs-list-column class="flex text-small">
-                <a open="/jobs/@job.Id" open-to="#unique" ic-swap-style="replace">@job.Name</a>
-            </aiplugs-list-column>
-            <aiplugs-list-column class="text-small">
-                <a open="/jobs/@job.Id" open-to="#unique" ic-swap-style="replace">@job.Status</a>
-            </aiplugs-list-column>
-            <aiplugs-list-column class="text-small">
-                <a open="/jobs/@job.Id" open-to="#unique" ic-swap-style="replace">@job.StartAt?.ToLocalTime().DateTime</a>
-            </aiplugs-list-column>
-        </aiplugs-list-item>
+            <aiplugs-list-item ic-get-from="/jobs?skipToken=@(Model.PrevSkipToken())&desc=false&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+        }
+        @foreach (var job in Model.Jobs)
+        {
+            <aiplugs-list-item name="jobs[]" item="@job.Id" selected="@(job == first)">
+                <aiplugs-list-column class="flex text-small">
+                    <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.Name</a>
+                </aiplugs-list-column>
+                <aiplugs-list-column class="text-small">
+                    <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.Status</a>
+                </aiplugs-list-column>
+                <aiplugs-list-column class="text-small">
+                    <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.StartAt?.ToLocalTime().DateTime</a>
+                </aiplugs-list-column>
+            </aiplugs-list-item>
+        }
+        @if (Model.HasNext())
+        {
+            <aiplugs-list-item class="in-viewport" ic-get-from="/jobs?skipToken=@(Model.NextSkipToken())&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
         }
     </aiplugs-list>
 </aiplugs-blade>
-<div id="unique" class="flex flex-row"></div>
+<div id="unique" class="flex flex-row">
+    @if (Model.Job != null)
+    {
+        <partial name="ItemNoLayout" model=Model.Job />
+    }
+</div>
+@section Scripts {
+    @if (Model.Job != null) {
+        <script>document.querySelector('.aiplugs-list tbody').scroll(0, 50);</script>
+    }
+}

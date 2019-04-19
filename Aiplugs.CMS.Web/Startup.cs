@@ -43,6 +43,8 @@ namespace Aiplugs.CMS.Web
             //var context = new AiplugsDbContext(options);
             //context.Database.EnsureCreated();
 
+            services.AddDistributedMemoryCache();
+
             services.AddDbContext<AiplugsDbContext>();
 
             services.AddIdentity<User, Role>()
@@ -74,8 +76,10 @@ namespace Aiplugs.CMS.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime, AiplugsDbContext dbContext)
         {
+            dbContext.Database.Migrate();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -1,0 +1,30 @@
+﻿@model JobViewModel
+@{
+    Layout = null;
+    var first = Model.Jobs.FirstOrDefault();
+    var last = Model.Jobs.LastOrDefault();
+}
+@foreach (var job in Model.Jobs)
+{
+    <aiplugs-list-item name="jobs[]" item="@job.Id">
+        <aiplugs-list-column class="flex text-small">
+            <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.Name</a>
+        </aiplugs-list-column>
+
+        <aiplugs-list-column class="text-small">
+            <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.Status</a>
+        </aiplugs-list-column>
+
+        <aiplugs-list-column class="text-small">
+            <a open="/jobs/@job.Id" replace-to="#unique" ic-push-url="true">@job.StartAt?.ToLocalTime().DateTime</a>
+        </aiplugs-list-column>
+    </aiplugs-list-item>
+}
+@if (Model.HasNext())
+{
+    <aiplugs-list-item class="in-viewport" ic-get-from="/jobs?skipToken=@(last?.Id)&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+}
+else
+{
+    <!-- End -->
+}

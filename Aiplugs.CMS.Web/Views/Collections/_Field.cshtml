@@ -32,10 +32,13 @@ else if (Model.schema.Type == JSchemaType.Array)
     }
     else if (
         (Model.schema.Input != null && Model.schema.Input.IsTag) ||
-        (items.Type.HasValue && new[] { JSchemaType.Boolean, JSchemaType.Integer, JSchemaType.Number, JSchemaType.String }.Contains(items.Type.Value)))
+        (new[] { JSchemaType.Boolean, JSchemaType.Integer, JSchemaType.Number, JSchemaType.String }.Contains(items.Type)))
     {
         var value = Model.token?.AsEnumerable()?.Select(t => (string)t).ToArray();
-        <aiplugs-tag label="@Model.schema.Title" description="@Model.schema.Description" name="@(Model.name+"[]")" ignore-case value="@value" required=@Model.required/>
+        var jschema = @Model.schema.AsJSchema();
+        var minitems = (int?)jschema.MinimumItems;
+        var maxitems = (int?)jschema.MaximumItems;
+        <aiplugs-tag label="@Model.schema.Title" description="@Model.schema.Description" name="@(Model.name+"[]")" ignore-case value="@value" required=@Model.required min-length="@minitems" max-length="@maxitems"/>
     }
     else
     {

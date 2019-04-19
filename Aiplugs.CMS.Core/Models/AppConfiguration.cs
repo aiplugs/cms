@@ -7,16 +7,23 @@ namespace Aiplugs.CMS.Core.Models
     public class AppConfiguration : IAppConfiguration
     {
         public string UploadRootPath { get; }  
-        public Uri SettingsSchemaUri { get; }  
-        public Uri CollectionSchemaUri { get; }  
 
         public AppConfiguration(IConfiguration config)
         {
-            var schemas = config.GetSection("Schemas");
-            SettingsSchemaUri = new Uri(schemas["Settings"]);
-            CollectionSchemaUri = new Uri(schemas["Collection"]);
+            UploadRootPath = config["UploadRootPath"] ?? CreateDefaultUploadRootIfNotExist();
+        }
 
-            UploadRootPath = config["UploadRootPath"] ?? Path.GetTempPath();
+        string CreateDefaultUploadRootIfNotExist()
+        {
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            path = Path.Combine(path, ".aiplugs");
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+            path = Path.Combine(path, "cms");
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+            return path;
         }
     }
 }

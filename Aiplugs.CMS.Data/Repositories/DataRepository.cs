@@ -258,7 +258,7 @@ namespace Aiplugs.CMS.Data.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task UpdateDataAsync(string id, string data, string currentId, string userId, DateTimeOffset datetime)
+        public async Task UpdateDataAsync(string id, string data, string currentId, string userId, DateTimeOffset datetime, bool? isValid = null)
         {
             using (var tran = await _db.Database.BeginTransactionAsync())
             {
@@ -286,11 +286,18 @@ namespace Aiplugs.CMS.Data.Repositories
                     UpdatedBy = record.CreatedBy,
                     CurrentId = record.Id
                 };
+
+                if (isValid.HasValue)
+                    item.IsValid = isValid.Value;
+
                 var entry = _db.Items.Attach(item);
                 entry.Property(o => o.Data).IsModified = true;
                 entry.Property(o => o.UpdatedAt).IsModified = true;
                 entry.Property(o => o.UpdatedBy).IsModified = true;
                 entry.Property(o => o.CurrentId).IsModified = true;
+
+                if (isValid.HasValue)
+                    entry.Property(o => o.IsValid).IsModified = true;
 
                 await _db.SaveChangesAsync();
 

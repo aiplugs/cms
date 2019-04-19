@@ -1,8 +1,12 @@
-﻿using Aiplugs.CMS.Core.Services;
+﻿using System.Linq;
+using Aiplugs.CMS.Core.Services;
 using Aiplugs.CMS.Web.Attributes;
 using Aiplugs.CMS.Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Aiplugs.CMS.Web.ViewModels;
+using System.Net;
+using Aiplugs.CMS.Core.Models;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
@@ -19,6 +23,25 @@ namespace Aiplugs.CMS.Web.Controllers
             _procedureService = procedureService;
         }
 
+        public enum Style { Default, NoLayout, NoBlade }
+
+        [HttpPost("/jobs")]
+        public async Task<IActionResult> Execute([FromForm]string exec, [FromForm]string collection, [FromForm]string[] items, [FromForm]SearchMethod method, [FromForm]string query)
+        {
+            var id = await _procedureService.RegisterAsync(collection, exec, new ContextParameters
+            {
+                CollectionName = collection,
+                Items = items,
+                SearchMethod = method,
+                SearchQuery = query,
+            });
+
+            if (string.IsNullOrEmpty(id))
+                return StatusCode((int)HttpStatusCode.Conflict);
+
+            return RedirectToAction(nameof(Item), new { id, style = Style.NoLayout });
+        }
+
         [HttpPost("/jobs/{id}")]
         [SubmitAction("cancel")]
         public IActionResult Cancel([FromRoute]string id)
@@ -29,21 +52,38 @@ namespace Aiplugs.CMS.Web.Controllers
         }
 
         [HttpGet("/jobs")]
-        public async Task<IActionResult> List([FromQuery]string name)
+        public async Task<IActionResult> List([FromQuery]bool desc = true, [FromQuery]string skipToken = null, [FromHeader(Name = "X-IC-Request")]bool isIntercooler = false)
         {
-            var jobs = await _service.GetAsync(name);
+            var model = new JobViewModel { Desc = desc };
 
-            return View(jobs);
+            model.Jobs = await _service.GetAsync(null, desc, skipToken, model.Limit);
+
+            if (!desc)
+                model.Jobs = model.Jobs.Reverse();
+
+            if (isIntercooler)
+                return View("ListNoBlade", model);
+
+            return View(model);
         }
 
-        public enum Style { Default, NoBlade }
-
         [HttpGet("/jobs/{id}")]
-        public async Task<IActionResult> Item([FromRoute]string id, [FromQuery]Style style = Style.Default)
+        public async Task<IActionResult> Item([FromRoute]string id, [FromQuery]Style style = Style.Default, [FromHeader(Name = "X-IC-Request")]bool isIntercooler = false)
         {
-            var job = await _service.FindAsync(id);
-            var template = style == Style.NoBlade ? "NoBladeItem" : "Item";
-            return View(template, job);
+            var model = new JobViewModel
+            {
+                Job = await _service.FindAsync(id)
+            };
+
+            if (style == Style.NoBlade)
+                return View("ItemNoBlade", model.Job);
+
+            if (isIntercooler)
+                return View("ItemNoLayout", model.Job);
+
+            model.Jobs = await _service.GetAsync(null, true, model.PrevSkipToken(), model.Limit);
+            
+            return View("List", model);
         }
     }
 }

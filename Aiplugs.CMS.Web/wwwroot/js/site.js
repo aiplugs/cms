@@ -1,31 +1,9 @@
 ﻿(function () {
-    const FOLD = 'fold';
-    const EXPLICITLY = 'explicitly';
-    const THRESHOLD = 800;
-    const width = () => window.outerWidth;
-
-    const nav = document.querySelector('aiplugs-nav-items');
-    const btn = document.querySelector('.fold-action');
-
-    function resize(size) {
-        if (nav.classList.contains(EXPLICITLY) === false) {
-            if (size < THRESHOLD) {
-                nav.classList.add(FOLD);
-            } else {
-                nav.classList.remove(FOLD);
-            }
+    $(document).on('beforeAjaxSend.ic', function (_, ajaxSetting, elt) {
+        elt = elt[0];
+        if (ajaxSetting.type.toLowerCase() === 'post' && elt.name && elt.value) {
+            const prefix = (ajaxSetting.data || '').length > 0 ? '&' : '';
+            ajaxSetting.data += prefix + elt.name + '=' + encodeURIComponent(elt.value);
         }
-    }
-
-    btn.addEventListener('click', () => {
-        nav.classList.toggle(FOLD);
-        nav.classList.toggle(EXPLICITLY);
     })
-
-    window.addEventListener('resize', () => {
-        resize(width());
-    })
-
-    resize(width());
 }());
-

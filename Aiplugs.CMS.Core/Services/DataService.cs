@@ -13,12 +13,12 @@ namespace Aiplugs.CMS.Core.Services
     {
         private readonly IDataRepository _repository;
         private readonly IUserResolver _resolver;
-        private readonly IValidationService _validator;
-        public DataService(IDataRepository repository, IUserResolver userResolver, IValidationService validationService)
+        private readonly ISettingsService _settings;
+        public DataService(IDataRepository repository, IUserResolver userResolver, ISettingsService settingsService)
         {
             _repository = repository;
             _resolver = userResolver;
-            _validator = validationService;
+            _settings = settingsService;
         }
 
         public async Task<string> AddAsync(string collectionName, JToken data)
@@ -95,14 +95,14 @@ namespace Aiplugs.CMS.Core.Services
                 .ToArray();
         }
 
-        public async Task UpdateAsync(string id, JToken data, string currentId)
+        public async Task UpdateAsync(string id, JToken data, string currentId, bool? isValid = null)
         {
             var userId = _resolver.GetUserId();
 
             if (userId == null)
                 throw new UnauthorizedAccessException();
 
-            await _repository.UpdateDataAsync(id, data.ToString(), currentId, userId, DateTimeOffset.UtcNow);
+            await _repository.UpdateDataAsync(id, data.ToString(), currentId, userId, DateTimeOffset.UtcNow, isValid);
         }
 
         public async Task SetStatusAsync(string id, bool isValid, string currentId)
@@ -112,7 +112,7 @@ namespace Aiplugs.CMS.Core.Services
 
         public async Task<bool> ValidateAsync(string collectionName, JToken data)
         {
-            return await _validator.ValidateAsync(collectionName, data);
+            return await _settings.ValidateCollectionAsync(collectionName, data);
         }
     }
 

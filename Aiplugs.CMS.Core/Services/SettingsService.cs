@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Aiplugs.CMS.Core.Models;
 using Aiplugs.CMS.Data.Repositories;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 
 namespace Aiplugs.CMS.Core.Services
 {
@@ -12,13 +14,13 @@ namespace Aiplugs.CMS.Core.Services
         private readonly IAppConfiguration _config;
         private readonly ISettingsRepository _repository;
         private readonly IUserResolver _resolver;
-        private readonly IValidationService _validator;
-        public SettingsService(IAppConfiguration config, ISettingsRepository repository, IUserResolver userResolver, IValidationService validationService)
+        private readonly IDistributedCache _cache;
+        public SettingsService(IAppConfiguration config, ISettingsRepository repository, IUserResolver userResolver, IDistributedCache cache)
         {
             _config = config;
             _repository = repository;
             _resolver  = userResolver;
-            _validator = validationService;
+            _cache = cache;
         }
         public async Task<string> AddAsync(Collection collection)
         {
@@ -78,16 +80,52 @@ namespace Aiplugs.CMS.Core.Services
                 throw new UnauthorizedAccessException();
 
             await _repository.UpdateAsync(collection, userId, DateTimeOffset.UtcNow);
+            await SetSchema(collection.Name, collection.Schema);
         }
 
-        public async Task<bool> ValidateAsync(Settings settings)
+        public async Task<bool> ValidateCollectionAsync(string collectionName, JToken data)
         {
-            return await _validator.ValidateAsync(_config.SettingsSchemaUri, JObject.FromObject(settings));
+            if (string.IsNullOrEmpty(collectionName))
+                throw new ArgumentNullException(nameof(collectionName));
+
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            var json = await GetSchema(collectionName);
+
+            try
+            {
+                var schema = JSchema.Parse(json);
+                return data.IsValid(schema);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<bool> ValidateAsync(Collection collection)
+        private async Task<string> GetSchema(string collectionName)
         {
-            return await _validator.ValidateAsync(_config.CollectionSchemaUri, JObject.FromObject(collection));
+            var json = await _cache.GetStringAsync(collectionName);
+
+            if (json == null)
+            {
+                var collection = await FindCollectionAsync(collectionName);
+
+                if (collection == null)
+                    throw new ArgumentException($"Collection({collectionName}) is not found");
+
+                json = collection.Schema;
+
+                await SetSchema(collectionName, json);
+            }
+
+            return json;
+        }
+
+        private async Task SetSchema(string collectionName, string schema)
+        {
+            await _cache.SetStringAsync(collectionName, schema);
         }
     }
 }

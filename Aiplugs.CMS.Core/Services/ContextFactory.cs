@@ -3,6 +3,7 @@ using System.Threading;
 using Aiplugs.CMS.Core.Models;
 using Aiplugs.CMS.Data.Entities;
 using Aiplugs.CMS.Data.Repositories;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -20,18 +21,19 @@ namespace Aiplugs.CMS.Core.Services
             var resolver = new StaticUserResolver(job.CreatedBy);
             var data = _provider.GetRequiredService<IDataRepository>();
             var settings = _provider.GetRequiredService<ISettingsRepository>();
-            var validator = _provider.GetRequiredService<IValidationService>();
             var config = _provider.GetRequiredService<IAppConfiguration>();
             var files = _provider.GetRequiredService<IFileRepository>();
             var folders = _provider.GetRequiredService<IFolderRepository>();
+            var cache = _provider.GetRequiredService<IDistributedCache>();
+            var settingsService = new SettingsService(config, settings, resolver, cache);
             return new Context
             {
                 Logger = logger,
                 CancellationToken = token,
                 Progress = new Progress<int>(onProgress),
-                DataService = new DataService(data, resolver, validator),
+                DataService = new DataService(data, resolver, settingsService),
                 StorageService = new StorageService(config, files, folders, resolver),
-                SettingsService = new SettingsService(config, settings, resolver, validator),
+                SettingsService = settingsService,
                 Parameters = job.GetParameters<ContextParameters>(),
             };
         }

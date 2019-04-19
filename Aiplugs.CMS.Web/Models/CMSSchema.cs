@@ -30,7 +30,7 @@ namespace Aiplugs.CMS.Web.Models
         public string Description => _jschema.Description;
         public string MonacoLanguage => (string)_jobject["input"]?["monaco"]?["language"] ?? "text";
         public JObject Monaco => (JObject)_jobject["input"]?["monaco"] ?? new JObject();
-        public JSchemaType? Type => _jschema.Type;
+        public JSchemaType Type => _jschema.Type ?? (_jobject.ContainsKey("properties") ? JSchemaType.Object : JSchemaType.String);
         public CMSSchema Items => new CMSSchema((JObject)_jobject["items"] ?? new JObject());
         public IDictionary<string, CMSSchema> Properties
             => (_jobject?["properties"] as JObject)

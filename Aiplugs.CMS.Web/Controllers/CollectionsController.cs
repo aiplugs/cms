@@ -133,23 +133,5 @@ namespace Aiplugs.CMS.Web.Controllers
             var collection = await _settings.FindCollectionAsync(name);
             return Content(collection.Schema, "application/json");
         }
-
-        [HttpPost("{name}")]
-        [SubmitAction("exec")]
-        public async Task<IActionResult> Execute([FromForm]string exec, [FromForm]string collection, [FromForm]string[] items, [FromForm]SearchMethod method, [FromForm]string query)
-        {
-            var id = await _procedureService.RegisterAsync(collection, exec, new ContextParameters
-            {
-                CollectionName = collection,
-                Items = items,
-                SearchMethod = method,
-                SearchQuery = query,
-            });
-
-            if (string.IsNullOrEmpty(id))
-                return StatusCode((int)HttpStatusCode.Conflict);
-
-            return RedirectToAction("Item", "Jobs", new { id });
-        }
     }
 }

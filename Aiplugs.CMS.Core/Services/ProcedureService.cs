@@ -135,6 +135,7 @@ namespace Aiplugs.CMS.Core.Services
         }
         public string CreateTempDirectory(string[] path)
         {
+            path = new[] { "AiplugsCmsBin" }.Concat(path).ToArray();
             var dir = Path.GetTempPath();            
             for(var i = 0; i < path.Length; i++)
             {

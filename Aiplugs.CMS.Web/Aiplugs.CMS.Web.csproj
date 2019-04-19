@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
-    <PackageReference Include="Aiplugs.Elements" Version="1.0.0-preview14" />
+    <PackageReference Include="Aiplugs.Elements" Version="1.0.0-preview16" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,7 +45,13 @@
     <Content Update="Views\Files\IndexNoLayout.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
-    <Content Update="Views\Jobs\NoBladeItem.cshtml">
+    <Content Update="Views\Jobs\ItemNoLayout.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Views\Jobs\ListNoBlade.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Views\Jobs\ItemNoBlade.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Views\Jobs\List.cshtml">

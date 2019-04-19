@@ -63,7 +63,7 @@ namespace Aiplugs.CMS.Web.Api
             if (item == null)
                 return NotFound();
 
-            await _data.UpdateAsync(id, model, item.CurrentId);
+            await _data.UpdateAsync(id, model, item.CurrentId, true);
 
             return NoContent();
         }
