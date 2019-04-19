@@ -3,7 +3,11 @@
     ViewData["Title"] = Model.GetDisplayName() ?? "New Collection";
     ViewData.AddActivePage(SharedNavPages.Settings.Collections);
     var defaultValue = @"{
-    ""$schema"":""https://schemas.aiplugs.com/cms/2017-10-27/root.json#""
+    ""$schema"": ""https://schemas.aiplugs.com/cms/2017-10-27/root.json#"",
+    ""type"": ""object"",
+    ""properties"": {
+        
+    }
 }";
     var preiewAutocomplete = new Aiplugs.Elements.Ajax { Url = "/api/templates?keyword={0}"};
 }
