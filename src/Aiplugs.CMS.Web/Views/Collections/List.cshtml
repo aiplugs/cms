@@ -11,7 +11,7 @@
 }
 
 <aiplugs-blade label="@Model.CollectionName">
-    <form id="collections" class="flex flex-column" method="get">
+    <form id="collections" class="flex flex-column" method="get" action="/collections/@Model.CollectionName">
         <input type="hidden" name="collection" value="@Model.CollectionName" />
         <header>
             <div style="display:flex; padding: 0 1.2rem;">
