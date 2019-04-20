@@ -95,6 +95,8 @@ namespace Aiplugs.CMS.Web.Controllers
             var item = await _data.LookupAsync(id);
             if (item == null)
                 return NotFound();
+            
+            SetCurrentId(item.CurrentId);
 
             return View(new EditViewModel
             {
@@ -128,7 +130,7 @@ namespace Aiplugs.CMS.Web.Controllers
                 });
             }
 
-            await _data.UpdateAsync(id, data, item.CurrentId, true);
+            await _data.UpdateAsync(id, data, GetCurrentId(), true);
 
             return RedirectToAction("Edit", new { name, id });
         }
@@ -166,6 +168,14 @@ namespace Aiplugs.CMS.Web.Controllers
         {
             var collection = await _settings.FindCollectionAsync(name);
             return Content(collection.Schema, "application/json");
+        }
+
+        const string CURRENT_ID_KEY = "Item.CurrentId";
+        private void SetCurrentId(string currentId) {
+            HttpContext.Response.Cookies.Append(CURRENT_ID_KEY, currentId);
+        }
+        private string GetCurrentId() {
+            return HttpContext.Request.Cookies[CURRENT_ID_KEY];
         }
     }
 }
