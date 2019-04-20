@@ -98,7 +98,7 @@ namespace Aiplugs.CMS.Web.Controllers
             
             SetCurrentId(item.CurrentId);
 
-            return View(new EditViewModel
+            return View("ItemEdit", new EditViewModel
             {
                 CollectionName = name,
                 Schema = new CMSSchema(collection.Schema),
@@ -120,7 +120,7 @@ namespace Aiplugs.CMS.Web.Controllers
             if (!valid)
             {
                 ViewData["Errors"] = errors;
-                return View("Edit", new EditViewModel
+                return View("ItemEdit", new EditViewModel
                 {
                     CollectionName = name,
                     Schema = new CMSSchema(collection.Schema),
@@ -130,14 +130,14 @@ namespace Aiplugs.CMS.Web.Controllers
 
             await _data.UpdateAsync(id, data, GetCurrentId(), true);
 
-            return RedirectToAction("Edit", new { name, id });
+            return RedirectToAction(nameof(Edit), new { name, id });
         }
 
         [HttpGet("{name}/@new")]
         public async Task<IActionResult> NewDataAsync([FromRoute]string name)
         {
             var collection = await _settings.FindCollectionAsync(name);
-            return View("Edit", new EditViewModel
+            return View("ItemNew", new EditViewModel
             {
                 CollectionName = name,
                 Schema = new CMSSchema(collection.Schema),
@@ -153,11 +153,19 @@ namespace Aiplugs.CMS.Web.Controllers
 
             var (valid, errors) = await _data.ValidateAsync(name, data);
             if (!valid)
-                return BadRequest();
+            {
+                ViewData["Errors"] = errors;
+                return View("ItemNew", new EditViewModel
+                {
+                    CollectionName = name,
+                    Schema = new CMSSchema(collection.Schema),
+                    Data = data
+                });
+            }
 
             var id = await _data.AddAsync(name, data);
 
-            return RedirectToAction("Item", new { name, id });
+            return RedirectToAction(nameof(Item), new { name, id });
         }
 
         [HttpGet("{name}/$schema")]

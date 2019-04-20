@@ -1,0 +1,33 @@
+﻿@model EditViewModel
+
+@{ 
+    ViewData["Title"] = "New"; 
+    ViewData.AddActivePage(SharedNavPages.Collections.ResolveName(Model.CollectionName));
+    var m = (Model.Schema, Model.Data, string.Empty, false);
+}
+
+<aiplugs-blade label="New">
+    <form class="flex flex-column" method="post">
+        <aiplugs-actions>
+            <button is="aiplugs-button" looks="block" color="primary" type="submit">Save</button>
+            <button is="aiplugs-button" open="#cancel-dialog">Cancel</button>
+            <template id="cancel-dialog">
+                <aiplugs-dialog>
+                    <p slot="content">変更を破棄しますか？</p>
+                    <div slot="actions">
+                        <a is="aiplugs-button" asp-action="List" asp-route-name="@Model.CollectionName" color="warning">Yes</a>
+                        <button type="button" is="aiplugs-button" looks="block" color="primary" close="aiplugs-dialog">No</button>
+                    </div>
+                </aiplugs-dialog>
+            </template>
+        </aiplugs-actions>
+        <div class="flex form-content">
+            @foreach(var error in (IEnumerable<string>)ViewData["Errors"] ?? new string[0])
+            {
+                <div style="color:red;">@error</div>
+            }
+            <partial name="_Field" model=@m />
+        </div>
+    </form>
+</aiplugs-blade>
+

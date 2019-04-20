@@ -1,6 +1,8 @@
 ﻿@model EditViewModel
 
-@{ 
+@{
+    ViewData["Title"] = "Edit"; 
+    ViewData.AddActivePage(SharedNavPages.Collections.ResolveName(Model.CollectionName));
     var m = (Model.Schema, Model.Data, string.Empty, false);
 }
 
