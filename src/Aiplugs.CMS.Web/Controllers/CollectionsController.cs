@@ -101,7 +101,6 @@ namespace Aiplugs.CMS.Web.Controllers
             return View(new EditViewModel
             {
                 CollectionName = name,
-                Uri = Url.Content($"~/api/data/{name}/{id}"),
                 Schema = new CMSSchema(collection.Schema),
                 Data = item.Data
             });
@@ -124,7 +123,6 @@ namespace Aiplugs.CMS.Web.Controllers
                 return View("Edit", new EditViewModel
                 {
                     CollectionName = name,
-                    Uri = Url.Content($"~/api/data/{name}/{id}"),
                     Schema = new CMSSchema(collection.Schema),
                     Data = data
                 });
@@ -142,7 +140,6 @@ namespace Aiplugs.CMS.Web.Controllers
             return View("Edit", new EditViewModel
             {
                 CollectionName = name,
-                Uri = Url.Content($"~/api/data/{name}"),
                 Schema = new CMSSchema(collection.Schema),
                 Data = null
             });

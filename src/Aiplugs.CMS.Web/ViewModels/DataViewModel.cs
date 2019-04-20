@@ -11,7 +11,6 @@ namespace Aiplugs.CMS.Web.ViewModels
     public class EditViewModel
     {
         public string CollectionName { get; set; }
-        public string Uri { get; set; }
         public CMSSchema Schema { get; set; }
         public JToken Data { get; set; }
     }
