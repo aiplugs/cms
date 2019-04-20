@@ -52,7 +52,7 @@ namespace Aiplugs.CMS.Web.Controllers
                 PreviewTemplate = collection.PreviewTemplate,
                 DisplayName = collection.DisplayName,
                 DisplayOrder = collection.DisplayOrder,
-                Procedures = collection.Procedures
+                Procedures = collection.Procedures ?? new ProcedureInfo[0]
             });
         }
 
@@ -67,7 +67,7 @@ namespace Aiplugs.CMS.Web.Controllers
                 TitlePath = model.TitlePath,
                 PreviewTemplate = model.PreviewTemplate,
                 Schema = model.Schema,
-                Procedures = model.Procedures
+                Procedures = model.Procedures ?? new ProcedureInfo[0]
             };
 
             await _settingsService.AddAsync(collection);
