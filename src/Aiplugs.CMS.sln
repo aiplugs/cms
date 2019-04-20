@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
@@ -9,8 +9,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aiplugs.CMS.Tests", "Aiplugs.CMS.Tests\Aiplugs.CMS.Tests.csproj", "{C909AC6E-64E2-44F0-8975-481827AE3FDD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aiplugs.CMS.Core", "Aiplugs.CMS.Core\Aiplugs.CMS.Core.csproj", "{27541634-9F42-42A5-B76D-BF8B4D66A2CB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aiplugs.CMS.Functions", "Aiplugs.CMS.Functions\Aiplugs.CMS.Functions.csproj", "{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aiplugs.CMS.Data", "Aiplugs.CMS.Data\Aiplugs.CMS.Data.csproj", "{CA74F475-973C-4A44-975F-EED209FE883C}"
 EndProject
@@ -74,18 +72,6 @@ Global
 		{27541634-9F42-42A5-B76D-BF8B4D66A2CB}.Release|x64.Build.0 = Release|Any CPU
 		{27541634-9F42-42A5-B76D-BF8B4D66A2CB}.Release|x86.ActiveCfg = Release|Any CPU
 		{27541634-9F42-42A5-B76D-BF8B4D66A2CB}.Release|x86.Build.0 = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|x64.Build.0 = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Debug|x86.Build.0 = Debug|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|x64.ActiveCfg = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|x64.Build.0 = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|x86.ActiveCfg = Release|Any CPU
-		{7AA9EFB1-E82F-4FF3-9849-DCC43D5189FF}.Release|x86.Build.0 = Release|Any CPU
 		{CA74F475-973C-4A44-975F-EED209FE883C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA74F475-973C-4A44-975F-EED209FE883C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA74F475-973C-4A44-975F-EED209FE883C}.Debug|x64.ActiveCfg = Debug|Any CPU
