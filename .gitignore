@@ -3,3 +3,4 @@
 bin
 obj
 *.db
+src/Aiplugs.CMS.Web/wwwroot/lib/aiplugs-elements/
