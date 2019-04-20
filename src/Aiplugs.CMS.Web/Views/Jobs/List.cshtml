@@ -1,5 +1,6 @@
 ﻿@model JobViewModel
 @{
+    ViewData["Title"] = "Jobs";
     ViewData.AddActivePage(SharedNavPages.Jobs);
     var first = Model.Jobs.FirstOrDefault();
 }
