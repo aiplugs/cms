@@ -30,14 +30,15 @@ namespace Aiplugs.CMS.Web.Controllers
         }
 
         [HttpGet("{name}")]
-        public async Task<IActionResult> List(string name, [FromQuery]SearchMethod method = SearchMethod.Simple, [FromQuery]string query = null, [FromQuery]string skipToken = null, [FromQuery]int limit = 20, [FromQuery]RenderStyle style = RenderStyle.Default)
+        public async Task<IActionResult> List(string name, [FromQuery]SearchMethod method = SearchMethod.Simple, [FromQuery]string query = null, [FromQuery]bool desc = true, [FromQuery]string skipToken = null, [FromQuery]int limit = 20, [FromQuery]RenderStyle style = RenderStyle.Default)
         {
             var collection = await _settings.FindCollectionAsync(name);
             var items = method == SearchMethod.Simple 
-                        ? await _data.SearchAsync(name, query, skipToken, limit)
-                        : await _data.QueryAsync(name, query, skipToken, limit);
-            var first = items.FirstOrDefault();
-            var last = items.Count() == limit ? items.LastOrDefault() : null;
+                        ? await _data.SearchAsync(name, query, skipToken, limit, desc)
+                        : await _data.QueryAsync(name, query, skipToken, limit, desc);
+
+            if (!desc)
+                items = items.Reverse();
 
             var model = new CollectionViewModel
             {
