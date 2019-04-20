@@ -11,8 +11,9 @@ namespace Aiplugs.CMS.Web.ViewModels
         public IEnumerable<Job> Jobs { get; set; }
         public Job Job { get; set; }
 
-        public bool HasNext() => Jobs.Count() == Limit;
-        public string PrevSkipToken() => Job.Id.Substring(0, Job.Id.Length - 1);
-        public string NextSkipToken() => Jobs.Last().Id.Substring(0, Jobs.Last().Id.Length - 1);
+        public bool HasPrev() =>  (Desc == false && Jobs.Count() == Limit) || Job != null;
+        public bool HasNext() => Desc == true && Jobs.Count() == Limit;
+        public string PrevSkipToken() => Job.Id;
+        public string NextSkipToken() => Jobs.Last().Id;
     }
 }

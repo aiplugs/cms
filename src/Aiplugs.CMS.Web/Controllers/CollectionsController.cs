@@ -30,7 +30,7 @@ namespace Aiplugs.CMS.Web.Controllers
         }
 
         [HttpGet("{name}")]
-        public async Task<IActionResult> List(string name, [FromQuery]SearchMethod method = SearchMethod.Simple, [FromQuery]string query = null, [FromQuery]string skipToken = null, [FromQuery]int limit = 10)
+        public async Task<IActionResult> List(string name, [FromQuery]SearchMethod method = SearchMethod.Simple, [FromQuery]string query = null, [FromQuery]string skipToken = null, [FromQuery]int limit = 20, [FromQuery]RenderStyle style = RenderStyle.Default)
         {
             var collection = await _settings.FindCollectionAsync(name);
             var items = method == SearchMethod.Simple 
@@ -39,33 +39,56 @@ namespace Aiplugs.CMS.Web.Controllers
             var first = items.FirstOrDefault();
             var last = items.Count() == limit ? items.LastOrDefault() : null;
 
-            return View(new CollectionViewModel
+            var model = new CollectionViewModel
             {
                 SearchMethod = method,
                 SeachQuery = query,
                 TitlePath = collection.TitlePath,
                 Items = items,
                 CollectionName = name,
-                Procedures = collection.Procedures ?? new ProcedureInfo[0]
-            });
+                Procedures = collection.Procedures ?? new ProcedureInfo[0],
+                Limit = limit
+            };
+
+            if (style == RenderStyle.NoBlade)
+                return View("ListNoBlade", model);
+
+            return View(model);
         }
 
-        [HttpGet("{name}/{id}/view")]
-        public async Task<IActionResult> Data(string name, string id)
+        [HttpGet("{name}/{id}")]
+        public async Task<IActionResult> Item(string name, string id,  [FromHeader(Name = "X-IC-Request")]bool isIntercooler = false)
         {
             var collection = await _settings.FindCollectionAsync(name);
             var item = await _data.LookupAsync(id);
             if (item == null)
                 return NotFound();
 
-            return View(new DataViewModel
+            var model = new DataViewModel
             {
                 CollectionName = name,
                 Item = item
-            });
+            };
+
+            if (!isIntercooler)
+            {
+                var limit = 20;
+                var items = await _data.SearchAsync(name, null, id.Substring(0, id.Length-1), limit);
+                return View("List", new CollectionViewModel {
+                    SearchMethod = SearchMethod.Simple,
+                    TitlePath = collection.TitlePath,
+                    Items = items,
+                    CollectionName = name,
+                    Procedures = collection.Procedures ?? new ProcedureInfo[0],
+                    Data = model,
+                    Limit = limit
+                });
+            }
+
+            return View(model);
         }
 
-        [HttpGet("{name}/{id}")]
+        [HttpGet("{name}/{id}/@edit")]
         public async Task<IActionResult> Edit(string name, string id)
         {
             var collection = await _settings.FindCollectionAsync(name);
@@ -124,7 +147,7 @@ namespace Aiplugs.CMS.Web.Controllers
 
             var id = await _data.AddAsync(name, data);
 
-            return RedirectToAction("Edit", new { name, id });
+            return RedirectToAction("Item", new { name, id });
         }
 
         [HttpGet("{name}/$schema")]

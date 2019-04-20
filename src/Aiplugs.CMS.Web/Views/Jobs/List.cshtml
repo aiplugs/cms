@@ -8,7 +8,7 @@
         <a asp-action="List" is="aiplugs-button">Reload</a>
     </aiplugs-actions>
     <aiplugs-list label-name="Procedure*" label-status="Status" label-start-at="Start At">
-        @if (Model.Job != null)
+        @if (Model.HasPrev())
         {
             <aiplugs-list-item ic-get-from="/jobs?skipToken=@(Model.PrevSkipToken())&desc=false&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
         }
@@ -39,7 +39,7 @@
     }
 </div>
 @section Scripts {
-    @if (Model.Job != null) {
+    @if (Model.HasPrev()) {
         <script>document.querySelector('.aiplugs-list tbody').scroll(0, 50);</script>
     }
 }

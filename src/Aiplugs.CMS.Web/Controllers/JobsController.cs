@@ -81,7 +81,7 @@ namespace Aiplugs.CMS.Web.Controllers
             if (isIntercooler)
                 return View("ItemNoLayout", model.Job);
 
-            model.Jobs = await _service.GetAsync(null, true, model.PrevSkipToken(), model.Limit);
+            model.Jobs = await _service.GetAsync(null, true, id.Substring(0, id.Length-1), model.Limit);
             
             return View("List", model);
         }

@@ -4,6 +4,15 @@
     var first = Model.Jobs.FirstOrDefault();
     var last = Model.Jobs.LastOrDefault();
 }
+@if (Model.Jobs.Count() == 0)
+{
+    // Intercooler hack, need any body.
+    <!-- List End -->
+}
+@if (Model.HasPrev())
+{
+    <aiplugs-list-item class="in-viewport" ic-get-from="/jobs?skipToken=@(Model.PrevSkipToken())&desc=false&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+}
 @foreach (var job in Model.Jobs)
 {
     <aiplugs-list-item name="jobs[]" item="@job.Id">
@@ -22,9 +31,5 @@
 }
 @if (Model.HasNext())
 {
-    <aiplugs-list-item class="in-viewport" ic-get-from="/jobs?skipToken=@(last?.Id)&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
-}
-else
-{
-    <!-- End -->
+    <aiplugs-list-item class="in-viewport" ic-get-from="/jobs?skipToken=@(Model.NextSkipToken())&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
 }

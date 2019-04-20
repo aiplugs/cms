@@ -1,0 +1,43 @@
+@model CollectionViewModel
+@{
+    Layout = null;
+   
+    var items = Model.Items.Select(item => {
+        var data = item.Data;
+        data["@link"] = Url.CollectionDataLink(Model.CollectionName, item.Id);
+        return data;
+    });
+}
+@if (Model.Items.Count() == 0)
+{
+    // Intercooler hack, need any body.
+    <!-- List End -->
+}
+@if (Model.HasPrev())
+{
+    <aiplugs-list-item ic-get-from="/collections/@Model.CollectionName?skipToken=@(Model.PrevSkipToken())&desc=false&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+}
+@foreach (var item in Model.Items)
+{
+    var title = @item.Data.SelectToken(Model.TitlePath)?.ToString();
+    <aiplugs-list-item name="items[]" item="@item.Id">
+        <aiplugs-list-column class="flex">
+            <a open="/collections/@Model.CollectionName/@item.Id" replace-to="#detail" ic-push-url="true">@title</a>
+        </aiplugs-list-column>
+        <aiplugs-list-column class="text-small">@item.UpdatedAt.ToLocalTime().DateTime</aiplugs-list-column>
+        <aiplugs-list-column class="text-small">
+            @if (item.IsValid)
+            {
+                <i class="fa fa-check-circle"></i><text>Valid</text>
+            }
+            else
+            {
+                <i class="fa fa-times-circle error-color"></i><text>Valid</text>
+            }
+        </aiplugs-list-column>
+    </aiplugs-list-item>
+}
+@if (Model.HasNext())
+{
+    <aiplugs-list-item class="in-viewport" ic-get-from="/collection/@Model.CollectionName?skipToken=@(Model.NextSkipToken())&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+}

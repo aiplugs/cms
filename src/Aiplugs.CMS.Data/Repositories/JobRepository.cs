@@ -40,7 +40,7 @@ namespace Aiplugs.CMS.Data.Repositories
                 if (desc)
                     query = query.Where(job => string.Compare(job.Id, skipToken) > 0);
                 else
-                    query = query.Where(job => string.Compare(job.Id, skipToken) < 1);
+                    query = query.Where(job => string.Compare(job.Id, skipToken) < 0);
             }
 
             if (desc)

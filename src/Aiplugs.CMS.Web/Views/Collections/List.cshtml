@@ -34,13 +34,17 @@
                 </button>
             }
         </aiplugs-actions>
-        <aiplugs-list label-title="*" label-lastmodified="Last Modified" label-status="Validation" onchange="onSelectedItems()">
+        <aiplugs-list label-title="*" label-lastmodified="Last Modified" label-status="Validation">
+            @if (Model.HasPrev())
+            {
+                <aiplugs-list-item ic-get-from="/collections/@Model.CollectionName?skipToken=@(Model.PrevSkipToken())&desc=false&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+            }
             @foreach (var item in Model.Items)
             {
                 var title = @item.Data.SelectToken(Model.TitlePath)?.ToString();
-                <aiplugs-list-item name="items[]" item="@item.Id">
+                <aiplugs-list-item name="items[]" item="@item.Id" selected=@(@item.Id == Model.Data?.Item.Id)>
                     <aiplugs-list-column class="flex">
-                        <a open="/collections/@Model.CollectionName/@item.Id/view" open-to="#detail" ic-swap-style="replace">@title</a>
+                        <a open="/collections/@Model.CollectionName/@item.Id" replace-to="#detail" ic-push-url="true">@title</a>
                     </aiplugs-list-column>
                     <aiplugs-list-column class="text-small">@item.UpdatedAt.ToLocalTime().DateTime</aiplugs-list-column>
                     <aiplugs-list-column class="text-small">
@@ -55,15 +59,20 @@
                     </aiplugs-list-column>
                 </aiplugs-list-item>
             }
+            @if (Model.HasNext())
+            {
+                <aiplugs-list-item class="in-viewport" ic-get-from="/collection/@Model.CollectionName?skipToken=@(Model.NextSkipToken())&desc=true&style=NoBlade" ic-trigger-on="in-viewport" ic-replace-target="true"></aiplugs-list-item>
+            }
         </aiplugs-list>
     </form>
 </aiplugs-blade>
-<div id="detail" class="flex flex-row"></div>
-@section Scripts
-{
-    <script>
-        function onSelectedItems() {
-
-        }
-    </script>
+<div id="detail" class="flex flex-row">
+    @if (Model.Data != null) {
+        <partial name="Item" model=Model.Data />
+    }
+</div>
+@section Scripts {
+    @if (Model.Data != null) {
+        <script>document.querySelector('.aiplugs-list tbody').scroll(0, 50);</script>
+    }
 }
