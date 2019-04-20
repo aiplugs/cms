@@ -60,11 +60,11 @@ namespace Microsoft.AspNetCore.Mvc
 
             var splited = path.Split("/").Where(s => !string.IsNullOrEmpty(s)).ToArray();
 
-            return urlHelper.Action(action, controller, new { path = string.Join("/", splited.Concat(new[] { name })) });
+            return urlHelper.Action(action, controller, new { path = string.Join("/", splited.Concat(new[] { name })) }).Replace("%2F", "/");
         }
         public static string FolderLink(this IUrlHelper urlHelper, string path, string name, string action = "Index", string controller = "Files")
             => ItemLink(urlHelper, path, name, action, controller);
-        public static string FilePreviewLink(this IUrlHelper urlHelper, string path, string name, string action = "Files", string controller = "Preview")
+        public static string FilePreviewLink(this IUrlHelper urlHelper, string path, string name, string action = "Preview", string controller = "Files")
             => ItemLink(urlHelper, path, name, action, controller);
         public static string FolderPreviewLink(this IUrlHelper urlHelper, string path, string name, string action = "Fodlers", string controller = "Preview")
             => ItemLink(urlHelper, path, name, action, controller);
