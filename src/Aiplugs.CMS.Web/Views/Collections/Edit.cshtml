@@ -20,6 +20,10 @@
             </template>
         </aiplugs-actions>
         <div class="flex form-content">
+            @foreach(var error in (IEnumerable<string>)ViewData["Errors"] ?? new string[0])
+            {
+                <div style="color:red;">@error</div>
+            }
             <partial name="_Field" model=@m />
         </div>
     </form>

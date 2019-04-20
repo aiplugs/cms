@@ -83,7 +83,7 @@ namespace Aiplugs.CMS.Core.Services
             await SetSchema(collection.Name, collection.Schema);
         }
 
-        public async Task<bool> ValidateCollectionAsync(string collectionName, JToken data)
+        public async Task<(bool,IEnumerable<string>)> ValidateCollectionAsync(string collectionName, JToken data)
         {
             if (string.IsNullOrEmpty(collectionName))
                 throw new ArgumentNullException(nameof(collectionName));
@@ -95,12 +95,14 @@ namespace Aiplugs.CMS.Core.Services
 
             try
             {
+                IList<string> errors;
                 var schema = JSchema.Parse(json);
-                return data.IsValid(schema);
+                var result = data.IsValid(schema, out errors);
+                return (result, errors);
             }
             catch
             {
-                return false;
+                return (false, null);
             }
         }
 

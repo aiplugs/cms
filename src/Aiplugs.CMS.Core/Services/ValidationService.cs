@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -46,7 +48,7 @@ namespace Aiplugs.CMS.Core.Services
             }
         }
 
-        public async Task<bool> ValidateAsync(string collectionName, JToken data)
+        public async Task<(bool, IEnumerable<string>)> ValidateAsync(string collectionName, JToken data)
         {
             if (string.IsNullOrEmpty(collectionName))
                 throw new ArgumentNullException(nameof(collectionName));
@@ -67,12 +69,14 @@ namespace Aiplugs.CMS.Core.Services
 
             try
             {
+                IList<string> errors;
                 var schema = JSchema.Parse(json);
-                return data.IsValid(schema);
+                var result = data.IsValid(schema, out errors);
+                return (result, errors);
             }
             catch
             {
-                return false;
+                return (false, null);
             }
         }
     }

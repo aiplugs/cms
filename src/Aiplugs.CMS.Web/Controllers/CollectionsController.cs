@@ -105,7 +105,7 @@ namespace Aiplugs.CMS.Web.Controllers
             });
         }
 
-        [HttpPost("{name}/{id}")]
+        [HttpPost("{name}/{id}/@edit")]
         public async Task<IActionResult> UpdateData(string name, string id)
         {
             var item = await _data.LookupAsync(id);
@@ -115,10 +115,20 @@ namespace Aiplugs.CMS.Web.Controllers
             var collection = await _settings.FindCollectionAsync(name);
             var data = HttpContext.Request.Form.ToJToken(collection.Schema);
 
-            if (!await _data.ValidateAsync(name, data))
-                return BadRequest();
+            var (valid, errors) = await _data.ValidateAsync(name, data);
+            if (!valid)
+            {
+                ViewData["Errors"] = errors;
+                return View("Edit", new EditViewModel
+                {
+                    CollectionName = name,
+                    Uri = Url.Content($"~/api/data/{name}/{id}"),
+                    Schema = new CMSSchema(collection.Schema),
+                    Data = data
+                });
+            }
 
-            await _data.UpdateAsync(id, data, item.CurrentId);
+            await _data.UpdateAsync(id, data, item.CurrentId, true);
 
             return RedirectToAction("Edit", new { name, id });
         }
@@ -142,7 +152,8 @@ namespace Aiplugs.CMS.Web.Controllers
             var collection = await _settings.FindCollectionAsync(name);
             var data = HttpContext.Request.Form.ToJToken(collection.Schema);
 
-            if (!await _data.ValidateAsync(name, data))
+            var (valid, errors) = await _data.ValidateAsync(name, data);
+            if (!valid)
                 return BadRequest();
 
             var id = await _data.AddAsync(name, data);

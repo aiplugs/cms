@@ -110,7 +110,7 @@ namespace Aiplugs.CMS.Core.Services
             await _repository.UpdateStatusAsync(id, isValid, currentId);
         }
 
-        public async Task<bool> ValidateAsync(string collectionName, JToken data)
+        public async Task<(bool, IEnumerable<string>)> ValidateAsync(string collectionName, JToken data)
         {
             return await _settings.ValidateCollectionAsync(collectionName, data);
         }

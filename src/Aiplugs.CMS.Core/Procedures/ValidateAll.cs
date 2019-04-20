@@ -10,7 +10,7 @@ namespace Aiplugs.CMS.Core.Functions
             context.Logger.LogInformation("Start validation.");
             var collection = context.Parameters.CollectionName;
             await context.Cursor(async item => {
-                var isValid = await context.DataService.ValidateAsync(collection, item.Data);
+                var (isValid, errors) = await context.DataService.ValidateAsync(collection, item.Data);
 
                 if (item.IsValid != isValid)
                 {

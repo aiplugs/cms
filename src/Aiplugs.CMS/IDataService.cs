@@ -16,7 +16,7 @@ namespace Aiplugs.CMS
         Task<IEnumerable<IRecord>> GetHistoryAsync(string id, string skipToken = null, int limit = 100);
         Task<IRecord> GetRecordThenAsync(string id, DateTime then);
         Task<IEnumerable<Event>> GetEventsAsync(string collectionName, DateTimeOffset from, string skipToken = null, int limit = 100);
-        Task<bool> ValidateAsync(string collectionName, JToken data);
+        Task<(bool, IEnumerable<string>)> ValidateAsync(string collectionName, JToken data);
         Task SetStatusAsync(string id, bool isValid, string currentId);
     }
 }

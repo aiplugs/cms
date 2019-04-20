@@ -15,6 +15,6 @@ namespace Aiplugs.CMS
         Task<string> AddAsync(Collection collection);
         Task UpdateAsync(Collection collection);
         Task<IEnumerable<Collection>> GetCollectionHistoryAsync(string id);
-        Task<bool> ValidateCollectionAsync(string collectionName, JToken data);
+        Task<(bool,IEnumerable<string>)> ValidateCollectionAsync(string collectionName, JToken data);
     }
 }
