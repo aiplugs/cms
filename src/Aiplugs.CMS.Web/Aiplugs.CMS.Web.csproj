@@ -4,11 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <UserSecretsId>aspnet-Aiplugs.CMS.Web-9D753768-10BE-4B11-8233-B37A71EA98A1</UserSecretsId>
   </PropertyGroup>
-<!--   
-  <ItemGroup>
-    <None Update="app.db" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup> -->
-
+  
   <ItemGroup>
     <ProjectReference Include="../Aiplugs.CMS/Aiplugs.CMS.csproj" />
     <ProjectReference Include="../Aiplugs.CMS.Core/Aiplugs.CMS.Core.csproj" />
@@ -18,60 +14,6 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
     <PackageReference Include="Aiplugs.Elements" Version="1.0.0-preview17" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="Views\Collections\Edit.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Collections\_Field.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\FileSelectPreview.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\FolderSelectNoLayout.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\FileSelectNoLayout.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\FolderSe;lect.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\FileSelect.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Files\IndexNoLayout.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Jobs\ItemNoLayout.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Jobs\ListNoBlade.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Jobs\ItemNoBlade.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Jobs\List.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Jobs\Item.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Preview\Data.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Templates\Edit.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Templates\New.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Templates\List.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
   </ItemGroup>
 
 </Project>
