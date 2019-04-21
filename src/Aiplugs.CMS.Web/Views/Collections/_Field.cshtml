@@ -90,19 +90,23 @@ else if (Model.schema.Type == JSchemaType.Number)
 
 else if (Model.schema.Type == JSchemaType.String)
 {
+    var jschema = Model.schema.AsJSchema();
+    var pattern = jschema.Pattern;
+    var minLength = (int?)jschema.MinimumLength;
+    var maxLength = (int?)jschema.MaximumLength;
     if (Model.schema.Input == null)
     {
-        <aiplugs-input type="text" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required/>
+        <aiplugs-input type="text" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required="@Model.required" pattern="@pattern" min-length="@minLength" max-length="@maxLength"/>
     }
     else
     {
         if (Model.schema.Input.IsTextArea)
         {
-            <aiplugs-textarea label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required/>
+            <aiplugs-textarea label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) required=@Model.required pattern="@pattern" min-length="@minLength" max-length="@maxLength" />
         }
         else if (Model.schema.Input.IsWysiwyg)
         {
-            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="html" required=@Model.required>
+            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="html" required=@Model.required pattern="@pattern" min-length="@minLength" max-length="@maxLength">
                 <template>
                     <aiplugs-blade label="Edit @Model.schema.Title" wide expanded>
                         <form>
@@ -128,7 +132,7 @@ else if (Model.schema.Type == JSchemaType.String)
         else if (Model.schema.Input.IsCode)
         {
 
-            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="@Model.schema.MonacoLanguage" required=@Model.required>
+            <aiplugs-code id="@guid" label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" value=@((string)Model.token) lang="@Model.schema.MonacoLanguage" required=@Model.required pattern="@pattern" min-length="@minLength" max-length="@maxLength">
                 <template>
                     <aiplugs-blade label="Edit @Model.schema.Title" wide expanded>
                         <form>
