@@ -13,7 +13,7 @@
 <aiplugs-blade label="@Model.CollectionName">
     <form id="collections" class="flex flex-column" method="get" action="/collections/@Model.CollectionName">
         <input type="hidden" name="collection" value="@Model.CollectionName" />
-        <aiplugs-search method-list="@method" select-name="method" name="query" />
+        <aiplugs-search method-list="@method" select-name="method" name="query" value="@Model.SeachQuery" />
         <aiplugs-actions>
             <a href="/collections/@Model.CollectionName/@@new" is="aiplugs-button" looks="block">Create New</a>
             <button is="aiplugs-button" name="exec" value="ValidateAll"
