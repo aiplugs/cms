@@ -112,3 +112,26 @@
 .error-color {
     color: var(--color-error) !important;
 }
+
+body.simple {
+    flex-direction: column;
+    background: var(--color-bg-secondary);
+    align-items: center;
+}
+body.simple header {
+    display: flex;
+    align-items: center;
+    color: var(--color-primary);
+    padding: 1.6rem 1.6rem;
+    margin-left: -0.8rem;
+}
+body.simple main {
+    background: white;
+    padding: 1.6rem 3.2rem 3.2rem;
+    margin: 1.6rem;
+    border-radius: 0.4rem;
+}
+.logo-img {
+    width: 2.4rem;
+    margin-right: 0.8rem;
+}

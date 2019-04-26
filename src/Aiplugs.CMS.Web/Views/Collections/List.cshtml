@@ -20,7 +20,7 @@
                     ic-post-to="/jobs" ic-target="#detail" ic-include="#collections">
                 Validate All
             </button>
-            @if (Model.Procedures.Count() <= 3)
+            @if (Model.Procedures.Count() <= 0)
             {
                 foreach (var procedure in Model.Procedures)
                 {
@@ -31,7 +31,8 @@
                 }
             } else {
                 var commands = Model.Procedures.Select(c => new SelectListItem { Text = c.Name, Value = c.Name});
-                <button type="button" is="aiplugs-selectable-button" selection="@commands">Exec</button>
+                <button type="button" is="aiplugs-selectable-button" selection="@commands" name="exec" 
+                        ic-post-to="/jobs" ic-target="#detail" ic-include="#collections">Exec</button>
             }
         </aiplugs-actions>
         <aiplugs-list label-title="*" label-lastmodified="Last Modified" label-status="Validation">

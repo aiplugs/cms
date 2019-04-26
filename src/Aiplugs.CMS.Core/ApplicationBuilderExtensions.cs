@@ -1,4 +1,8 @@
+using System.Linq;
+using System.Threading.Tasks;
+using Aiplugs.CMS.Data.Entities;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aiplugs.CMS.Core
@@ -7,14 +11,20 @@ namespace Aiplugs.CMS.Core
     {
         public static IApplicationBuilder UseAiplugsCMS(this IApplicationBuilder app)
         {
-            var services = app.ApplicationServices;
+            var scopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
+
+            var scope = scopeFactory.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
             
-            //var migration = services.GetRequiredService<IMigration>();
+            var roles = new [] { "admin" };
 
-            //if (migration.NeedMigrate())
-            //    migration.Migrate();
+            // var tasks = roles.Select(async role => {
+            //     if (await roleManager.RoleExistsAsync(role) == false)
+            //         await roleManager.CreateAsync(new Role { Name = role });
+            // });
 
-            //app.UseAiplugsFunctions<IContextParameters>();
+            // Task.WhenAll(tasks).Wait();
 
             return app;
         }

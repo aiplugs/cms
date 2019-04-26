@@ -33,6 +33,7 @@ namespace Aiplugs.CMS.Core
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<IJobService, JobService>();
             services.AddTransient<ITemplateService, TemplateService>();
+            services.AddTransient<IUserManageService, UserManageService>();
             services.AddHostedService<JobHostedService>();
 
             //services.AddAiplugsFunctions(_ => opts.FunctionOptionsBuilder);

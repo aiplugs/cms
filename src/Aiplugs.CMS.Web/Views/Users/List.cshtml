@@ -1,0 +1,30 @@
+@model UserViewModel
+@{
+    ViewData["Title"] = "Users";
+    ViewData.AddActivePage(SharedNavPages.Jobs);
+}
+<aiplugs-blade label="Users" expanded>
+    <aiplugs-actions>
+        <a asp-action="List" is="aiplugs-button">Reload</a>
+    </aiplugs-actions>
+    <aiplugs-list label-name="Display Name*">
+        @foreach (var user in Model.List)
+        {
+            <aiplugs-list-item name="users[]" item="@user.Id" selected="@(user == Model.User)">
+                <aiplugs-list-column class="flex text-small">
+                    <a open="/settings/users/@user.Id" replace-to="#unique" ic-push-url="true">@user.Name</a>
+                </aiplugs-list-column>
+                <aiplugs-list-column class="flex text-small">
+                    <a open="/settings/users/@user.Id" replace-to="#unique" ic-push-url="true">
+                        @string.Join(",", user.Roles)
+                    </a>
+                </aiplugs-list-column>
+            </aiplugs-list-item>
+        }
+    </aiplugs-list>
+</aiplugs-blade>
+<div id="unique" class="flex flex-row">
+    @if (Model.User != null) {
+        <partial name="Item" model=Model.User />
+    }
+</div>

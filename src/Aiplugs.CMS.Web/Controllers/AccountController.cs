@@ -14,6 +14,8 @@ using Aiplugs.CMS.Web.Models;
 using Aiplugs.CMS.Web.ViewModels;
 using Aiplugs.CMS.Web.Filters;
 using Aiplugs.CMS.Data.Entities;
+using Aiplugs.CMS.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aiplugs.CMS.Web.Controllers
 {
@@ -23,36 +25,86 @@ namespace Aiplugs.CMS.Web.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<Role> _roleManager;
+        private readonly AiplugsDbContext _db;
         private readonly ILogger _logger;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
+            RoleManager<Role> roleManager,
+            AiplugsDbContext db,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
+            _db = db;
             _logger = logger;
         }
 
-        const string SAMPLE_USER = "sample@local";
-        const string SAMPLE_PASS = "P@ssw0rd";
+        [HttpGet("/account/admin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Admin()
+        {
+            var count = await _db.Users.CountAsync();
+
+            if (count > 0)
+                return Forbid();
+
+            return View(new AdminViewModel());
+        }
+
+        [HttpPost("/account/admin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateAdmin([FromForm]AdminViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(nameof(Admin), model);
+
+            var count = await _db.Users.CountAsync();
+            if (count > 0)
+                return Forbid();
+
+            var user = new User { UserName = model.DisplayName, Email = model.Email };
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                ViewData["Errors"] = result.Errors.Select(err => err.Description);
+                return View(nameof(Admin), model);
+            }
+
+            await _userManager.AddToRoleAsync(user, "admin");
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            return RedirectToAction("Index", "Default");
+        }
+
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(string returnUrl = null)
+        public IActionResult Login(string returnUrl = null)
         {
+            if (HttpContext.User.Identity.IsAuthenticated)
+                return RedirectToLocal(returnUrl);
+        
+            return View(new LoginViewModel());
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromForm] LoginViewModel model, [FromQuery]string returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+                return View(nameof(Login), model);
+
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            var signin = await _signInManager.PasswordSignInAsync(SAMPLE_USER, SAMPLE_PASS, false, lockoutOnFailure: false);
-            if (signin.Succeeded == false)
+            var signin = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+            if (!signin.Succeeded)
             {
-                var user = new User { UserName = SAMPLE_USER, Email = SAMPLE_USER };
-                var signup = await _userManager.CreateAsync(user, SAMPLE_PASS);
-
-                if (signup.Succeeded == false)
-                    throw new InvalidOperationException("Cannot register sample user.");
-
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                return View(nameof(Login), new LoginViewModel());
             }
             
             return RedirectToLocal(returnUrl);

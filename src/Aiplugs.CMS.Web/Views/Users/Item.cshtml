@@ -1,0 +1,31 @@
+@model Aiplugs.CMS.IUser
+@{
+    Layout = null;
+}
+
+<aiplugs-blade label="@Model.Name">
+    <form action="/settings/users/@Model.Id" method="post">
+        <aiplugs-actions>
+            <button type="submit" is="aiplugs-button" name="delete" value="exec">Delete</button>
+        </aiplugs-actions>
+        <table>
+            <tr>
+                <th>ID</th>
+                <td>@Model.Id</td>
+            </tr>
+            <tr>
+                <th>Display Name</th>
+                <td>@Model.Name</td>
+            </tr>
+            <tr>
+                <th>Roles</th>
+                <td>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <li>@role</li>
+                    }
+                </td>
+            </tr>
+        </table>
+    </form>
+</aiplugs-blade>

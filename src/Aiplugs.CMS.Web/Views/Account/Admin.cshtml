@@ -1,0 +1,16 @@
+@model AdminViewModel
+@{
+    Layout = "_LoginLayout";
+    var errors = (ViewData["Errors"] as IEnumerable<string>) ?? new string[0];
+}
+@foreach (var error in errors)
+{
+    <p class="error-color">@error</p>
+}
+<form method="post">
+    <aiplugs-input asp-for="Email" />
+    <aiplugs-input asp-for="DisplayName" />
+    <aiplugs-input asp-for="Password" type="password"/>
+    <aiplugs-input asp-for="ConfirmPassword" type="password"/>
+    <button type="submit" is="aiplugs-button" looks="block" color="primary" size="full">Register</button>
+</form>
