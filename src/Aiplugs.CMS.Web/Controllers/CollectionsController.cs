@@ -47,6 +47,7 @@ namespace Aiplugs.CMS.Web.Controllers
                 TitlePath = collection.TitlePath,
                 Items = items,
                 CollectionName = name,
+                DisplayName = collection.DisplayName,
                 Procedures = collection.Procedures ?? new ProcedureInfo[0],
                 Limit = limit
             };
@@ -80,6 +81,7 @@ namespace Aiplugs.CMS.Web.Controllers
                     TitlePath = collection.TitlePath,
                     Items = items,
                     CollectionName = name,
+                    DisplayName = collection.DisplayName,
                     Procedures = collection.Procedures ?? new ProcedureInfo[0],
                     Data = model,
                     Limit = limit

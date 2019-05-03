@@ -1,6 +1,6 @@
 @model CollectionViewModel
 @{
-    ViewData["Title"] = Model.CollectionName;
+    ViewData["Title"] = Model.DisplayName;
     ViewData.AddActivePage(SharedNavPages.Collections.ResolveName(Model.CollectionName));
     var items = Model.Items.Select(item => {
         var data = item.Data;
@@ -10,7 +10,7 @@
     var method = Html.GetEnumSelectList<SearchMethod>().Select(o => { o.Selected = o.Value == ((int)Model.SearchMethod).ToString(); return o; });
 }
 
-<aiplugs-blade label="@Model.CollectionName">
+<aiplugs-blade label="@Model.DisplayName">
     <form id="collections" class="flex flex-column" method="get" action="/collections/@Model.CollectionName">
         <input type="hidden" name="collection" value="@Model.CollectionName" />
         <aiplugs-search method-list="@method" select-name="method" name="query" value="@Model.SeachQuery" />
