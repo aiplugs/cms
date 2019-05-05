@@ -32,8 +32,9 @@ namespace Aiplugs.CMS.Web.Controllers
 
         [HttpGet("/files/{*path}")]
         public async Task<IActionResult> Index(
-            [FromRoute]string path, 
-            [FromQuery]string skipToken, 
+            [FromRoute]string path,
+            [FromQuery]string type = null, 
+            [FromQuery]string skipToken = null, 
             [FromQuery]int limit = 30, 
             [FromQuery]Style style = Style.Default,
             [FromQuery]Select select = Select.None)
@@ -43,7 +44,7 @@ namespace Aiplugs.CMS.Web.Controllers
             if (folder == null)
                 return NotFound();
 
-            var page = await _pagedStorage.GetPageAsync(folder, skipToken, limit, select == Select.Folder);
+            var page = await _pagedStorage.GetPageAsync(folder, type, skipToken, limit, select == Select.Folder);
 
             ViewData[ERROR_MESSAGES] = TempData[ERROR_MESSAGES];
             ViewData[SUCCESS_MESSAGES] = TempData[ERROR_MESSAGES];
@@ -223,10 +224,32 @@ namespace Aiplugs.CMS.Web.Controllers
             return RedirectToIndexWithQueryString();
         }
 
-        [HttpGet("/details/files/{*path}")]
-        public IActionResult Preview([FromRoute]string path)
+        [HttpGet("/raw/{*path}")]
+        public async Task<IActionResult> Raw([FromRoute]string path)
         {
-            return View("FileSelectPreview");
+            var file = await _storage.FindFileAsync(path);
+
+            if (file == null)
+                return NotFound();
+            
+            var stream = _storage.OpenFile(file);
+
+            return File(stream, file.ContentType);
+        }
+
+        [HttpGet("/details/files/{*path}")]
+        public async Task<IActionResult> Preview([FromRoute]string path, [FromQuery]Select select = Select.None)
+        {
+            var file = await _storage.FindFileAsync(path);
+            if (file == null)
+                return NotFound();
+
+            var model = (file, path);
+
+            if (select == Select.File)
+                return View("FileSelectPreview", model);
+
+            return View("FilePreview", model);
         }
     }
 }

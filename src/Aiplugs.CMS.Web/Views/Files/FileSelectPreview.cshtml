@@ -1,17 +1,55 @@
-﻿@{
+﻿@model (IFile File, string Path)
+@{
     Layout = null;
+    var post = Model.File.ContentType.StartsWith("image/") ? "//aiplugs-tinymce/active/images"
+             : Model.File.ContentType.StartsWith("video/") ? "//aiplugs-tinymce/active/videos"
+             : null;
 }
 <div id="select-modal__preview">
+    <style>
+    .select-modal__preview-frame figure.image::before {
+        background: linear-gradient(0deg, rgba(91, 134, 229, 0.6), rgba(54, 209, 220, 0.6)), url("/raw/@Model.Path");
+    }
+    </style>
     <div class="select-modal__preview-frame">
+        @if (Model.File.ContentType == null) {
+            <figure class="unknown">
+                <i class="far fa-file"></i>
+            </figure>
+        }
 
+        else if(Model.File.ContentType.StartsWith("image/")) {
+            <figure class="image">
+                <img src="/raw/@Model.Path" width="240">
+            </figure>
+        }
+
+        else if (Model.File.ContentType.StartsWith("video/")) {
+            <div class="video-container">
+                <video controls>
+                    <source src="/raw/@Model.Path" type="@Model.File.ContentType" />
+                </video>
+            </div>
+        }
+
+        else {
+            <figure class="unknown">
+                <i class="far fa-file"></i>
+            </figure>
+        }
     </div>
+
     <form class="select-modal__preview-actions">
-        <input type="hidden" name="src" value="https://avatars2.githubusercontent.com/u/1011232?s=32&u=332a5b77904556e83686f16105a3355f46c82292&v=4">
-        <input type="hidden" name="alt" value="iwate icon">
-        <input type="hidden" name="title" value="iwate">
+        <div class="select-modal__preview-input">
+            <input type="hidden" name="src" value="/raw/@Model.Path">
+            <aiplugs-input name="title" label="Title" />
+            <aiplugs-input name="alt" label="Alt" />
+        </div>
         <aiplugs-actions>
             <button is="aiplugs-button" close="aiplugs-modal">Cancel</button>
-            <button is="aiplugs-button" id="file-modal__select" looks="block" size="full" color="primary" ic-post-to="//aiplugs-tinymce/active/images" with-close="aiplugs-modal">Insert</button>
+            @if (!string.IsNullOrEmpty(post)) {
+                <button is="aiplugs-button" id="file-modal__select" looks="block" size="full" color="primary" ic-post-to="@post" with-close="aiplugs-modal">Insert</button>
+            }
         </aiplugs-actions>
     </form>
 </div>

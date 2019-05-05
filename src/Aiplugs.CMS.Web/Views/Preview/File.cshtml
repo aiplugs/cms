@@ -1,5 +1,144 @@
-@model IFile
+@model (IFile File, string Path)
 @{
     Layout = null;
+    var textPrefix = new[] {"text/", "application/json", "application/xml"};
 }
-<h1>Default Preview</h1>
+@inject IStorageService storage
+<html>
+    <head>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+        <link rel="stylesheet" href="/lib/aiplugs-elements/css/variables.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                margin: 0;
+                padding: 0;
+            }
+            figure, pre {
+                overflow: hidden;
+                max-height: 50vh;
+                margin: 0;
+            }
+            figure {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 16px 24px;
+                position: relative;
+            }
+            figure.image::before {
+                content: "";
+                position: absolute;
+                width: calc(100% + 10px);
+                height: calc(100% + 10px);
+                filter: blur(5px);
+                background: linear-gradient(0deg, rgba(91, 134, 229, 0.6), rgba(54, 209, 220, 0.6)), url("/raw/@Model.Path");
+                left: -5px;
+                right: -5px;
+                top: -5px;
+                bottom: -5px;
+                z-index: -1;
+            }
+            figure.unknown {
+                font-size: 120px;
+                color: var(--color-text-primary);
+            }
+            pre code {
+                padding: 16px 24px !important;
+            }
+            main {
+                padding: 16px 24px;
+            }
+            label {
+                font-weight: bold;
+                color: var(--color-text-primary);
+            }
+            #code {
+                margin: 0;
+                padding: 0;
+                width: 0;
+                height: 0;
+            }
+            #code__opener {
+                padding: 8px;
+                text-align: center;
+                cursor: pointer;
+            }
+            #code__opener::before {
+                content: "\f078";
+                font-family: "Font Awesome 5 Free";
+            }
+            #code:checked ~ pre {
+                max-height: fit-content;
+            }
+            #code:checked ~ #code__opener::before  {
+                content: "\f106";
+            }
+            .video-container {
+                padding: 0 24px;
+            }
+            video {
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        @if (Model.File.ContentType == null) {
+            <figure class="unknown">
+                <i class="far fa-file"></i>
+            </figure>
+        }
+
+        else if(Model.File.ContentType.StartsWith("image")) {
+            <figure class="image">
+                <img src="/raw/@Model.Path" width="320">
+            </figure>
+        }
+
+        else if (textPrefix.Any(prefix => Model.File.ContentType.StartsWith(prefix)) && Model.File.Size < 100_000) {
+            using (var stream = storage.OpenFile(Model.File)) {
+            using (var reader = new System.IO.StreamReader(stream)) {
+                var text = await reader.ReadToEndAsync();
+                @:<input type="checkbox" id="code"><pre><code>@text</code></pre><label id="code__opener" for="code"></label>
+            }}
+        }
+
+        else if (Model.File.ContentType.StartsWith("video/")) {
+            <div class="video-container">
+                <video controls>
+                    <source src="/raw/@Model.Path" type="@Model.File.ContentType" />
+                </video>
+            </div>
+        }
+
+        else {
+            <figure class="unknown">
+                <i class="far fa-file"></i>
+            </figure>
+        }
+
+        <main>
+            <label>Path</label>
+            <p class="text-small">@Model.Path</p>
+
+            <label>Name</label>
+            <p>@Model.File.Name</p>
+
+            <label>Content Type</label>
+            <p>@Model.File.ContentType</p>
+
+            <label>Size</label>
+            <p>@Model.File.Size.ToString("##,###") [B]</p>
+
+            <label>Last Modified At</label>
+            <p>@Model.File.LastModifiedAt.LocalDateTime</p>
+
+            <label>Last Modified By</label>
+            <p>@Model.File.LastModifiedBy</p>
+        </main>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+    </body>
+</html>

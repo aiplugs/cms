@@ -9,7 +9,7 @@ namespace Aiplugs.CMS.Data.Repositories
     {
         Task<File> LookupAsync(string id);
 
-        Task<IEnumerable<File>> GetChildrenAsync(string folderId, string skipToken, int limit);
+        Task<IEnumerable<File>> GetChildrenAsync(string folderId, string contentType, string skipToken, int limit);
 
         Task<File> FindChildAsync(string folderId, string name);
 

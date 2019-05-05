@@ -26,13 +26,15 @@ namespace Aiplugs.CMS.Web.Controllers
             if (file == null)
                 return NotFound();
 
+            var model = (file, path);
+
             var templateName = nameof(File);
             var template = await _templateService.FindAsync(templateName);
 
             if (template == null)
-                return View(file);
+                return View(model);
 
-            var result = await _templateService.RenderAsync(nameof(File), file);
+            var result = await _templateService.RenderAsync(nameof(File), model);
 
             return Content(result, "text/html");
         }

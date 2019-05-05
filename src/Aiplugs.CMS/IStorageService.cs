@@ -11,8 +11,8 @@ namespace Aiplugs.CMS
         Task<IEnumerable<IFolder>> GetFoldersAsync(string path, string skipToken = null, int limit = 100);
         Task<IEnumerable<IFolder>> GetFoldersAsync(IFolder parent, string skipToken = null, int limit = 100);
         Task<IFile> FindFileAsync(string path);
-        Task<IEnumerable<IFile>> GetFilesAsync(string path, string skipToken = null, int limit = 100);
-        Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, string skipToken = null, int limit = 100);
+        Task<IEnumerable<IFile>> GetFilesAsync(string path, string contentType = null, string skipToken = null, int limit = 100);
+        Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, string contentType = null, string skipToken = null, int limit = 100);
         Task<IFolder> LookupFolderAsync(string id);
         Task<IFile> LookupFileAsync(string id);
         Stream OpenFile(IFile file);

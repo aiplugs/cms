@@ -293,16 +293,16 @@ namespace Aiplugs.CMS.Core.Services
             return await GetFoldersAsync(parent.Path, skipToken, limit);
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync(string path, string skipToken = null, int limit = 100)
+        public async Task<IEnumerable<IFile>> GetFilesAsync(string path, string contentType = null, string skipToken = null, int limit = 100)
         {
             var folder = await FindFolderAsync(path);
             
-            return await GetFilesAsync(folder, skipToken, limit);
+            return await GetFilesAsync(folder, contentType, skipToken, limit);
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, string skipToken = null, int limit = 100)
+        public async Task<IEnumerable<IFile>> GetFilesAsync(IFolder parent, string contentType = null, string skipToken = null, int limit = 100)
         {
-            var files = await _files.GetChildrenAsync(parent.Id, skipToken, limit);
+            var files = await _files.GetChildrenAsync(parent.Id, contentType, skipToken, limit);
             
             return files.Select(Mapping.Mapper.Map<File>).ToArray();
         }

@@ -123,10 +123,13 @@ else if (Model.schema.Type == JSchemaType.String)
                                     </aiplugs-dialog>
                                 </template>
                             </aiplugs-actions>
-                            <aiplugs-tinymce name="value" value-from="#@guid" modal-image="~/files?select=file" modal-video="~/files?select=file"></aiplugs-tinymce>
+                            <aiplugs-tinymce name="value" value-from="#@guid" modal-image="~/files?select=file&type=image" modal-video="~/files?select=file&type=video" settings-from="#@(guid)-tinymce-config"></aiplugs-tinymce>
                         </form>
                     </aiplugs-blade>
                 </template>
+                <script id="@(guid)-tinymce-config" type="application/json">
+                    @Html.Raw(Model.schema.TinyMCE.ToString())
+                </script>
             </aiplugs-code>
         }
         else if (Model.schema.Input.IsCode)

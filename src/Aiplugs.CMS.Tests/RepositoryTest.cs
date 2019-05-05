@@ -457,10 +457,10 @@ namespace Aiplugs.CMS.Tests
                 var f2 = await files.AddAsync(folder.Id, "TestFile2", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
                 var f3 = await files.AddAsync(folder.Id, "TestFile3", Path.GetTempFileName(), "text/plain", 100, "tester", DateTime.UtcNow);
 
-                Assert.Equal(3, (await files.GetChildrenAsync(folder.Id, null, 100)).Count());
-                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, null, 2)).Count());
-                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, f1.Id, 100)).Count());
-                Assert.Equal(1, (await files.GetChildrenAsync(folder.Id, f2.Id, 100)).Count());
+                Assert.Equal(3, (await files.GetChildrenAsync(folder.Id, null, null, 100)).Count());
+                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, null, null, 2)).Count());
+                Assert.Equal(2, (await files.GetChildrenAsync(folder.Id, null, f1.Id, 100)).Count());
+                Assert.Equal(1, (await files.GetChildrenAsync(folder.Id, null, f2.Id, 100)).Count());
             });
         }
     }

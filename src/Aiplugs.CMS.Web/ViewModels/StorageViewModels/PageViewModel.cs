@@ -11,5 +11,6 @@ namespace Aiplugs.CMS.Web.ViewModels.StorageViewModels
         public IEnumerable<FolderViewModel> Folders { get; set; }
         public IEnumerable<FileViewModel> Files { get; set; }
         public string SkipToken { get; set; }
+        public string ContentType { get; set; }
     }
 }

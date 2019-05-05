@@ -13,13 +13,14 @@ namespace Aiplugs.CMS.Web.Services
             _storage = storage;
         }
 
-        public async Task<PageViewModel> GetPageAsync(IFolder parent, string skipToken = null, int limit = 100, bool dirOnly = false)
+        public async Task<PageViewModel> GetPageAsync(IFolder parent, string contentType = null, string skipToken = null, int limit = 100, bool dirOnly = false)
         {
             var page = new PageViewModel
             {
                 Path = parent.Path,
                 Folders = Enumerable.Empty<FolderViewModel>(),
-                Files = Enumerable.Empty<FileViewModel>()
+                Files = Enumerable.Empty<FileViewModel>(),
+                ContentType = contentType
             };
             var dir = skipToken == null || skipToken.StartsWith("d");
             var item = !dir;
@@ -44,7 +45,7 @@ namespace Aiplugs.CMS.Web.Services
             {
                 var len = limit - page.Folders.Count();
                 var getLen = len + 1;
-                var result = (await _storage.GetFilesAsync(parent, skipToken, getLen)).ToArray();
+                var result = (await _storage.GetFilesAsync(parent, contentType, skipToken, getLen)).ToArray();
                 var files = result.Take(len).ToArray();
 
                 page.Files = files.Select(f => new FileViewModel { Name = f.Name, Size = f.Size, LastModifiedAt = f.LastModifiedAt, LastModifiedBy = f.LastModifiedBy });

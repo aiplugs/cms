@@ -21,9 +21,12 @@ namespace Aiplugs.CMS.Data.Repositories
             return _db.Files.AsNoTracking().Where(file => file.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<File>> GetChildrenAsync(string folderId, string skipToken, int limit)
+        public async Task<IEnumerable<File>> GetChildrenAsync(string folderId, string contentType, string skipToken, int limit)
         {
             var query = _db.Files.AsNoTracking().Where(file => file.FolderId == folderId);
+
+            if (!string.IsNullOrEmpty(contentType))
+                query = query.Where(file => file.ContentType.StartsWith(contentType));
 
             if (!string.IsNullOrEmpty(skipToken))
                 query = query.Where(file => string.Compare(file.Id, skipToken) < 0);

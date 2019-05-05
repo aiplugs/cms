@@ -17,11 +17,11 @@
 #select-modal__preview {
     grid-column: 2 / 3;
     grid-row: 1 / 5;
-    background: var(--color-bg-secondary);
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
     height: 100%;
+    z-index: 0;
 }
 
 #select-modal__pagination {
@@ -50,6 +50,44 @@
 
 .select-modal__preview-actions {
     grid-row: 2/3;
+}
+
+.select-modal__preview-frame .video-container {
+    padding: 0 2.4rem;
+}
+
+.select-modal__preview-frame video {
+    width: 100%;
+}
+
+.select-modal__preview-frame figure {
+    overflow: hidden;
+    max-height: 40vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.6rem 2.4rem;
+    position: relative;
+}
+.select-modal__preview-frame figure.image::before {
+    content: "";
+    position: absolute;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+    filter: blur(5px);
+    left: -5px;
+    right: -5px;
+    top: -5px;
+    bottom: -5px;
+    z-index: -1;
+}
+.select-modal__preview-frame figure.unknown {
+    font-size: 12rem;
+    color: var(--color-text-primary);
+}
+.select-modal__preview-input {
+    padding: 0 2.4rem;
 }
 
 .preview--folder h2 {

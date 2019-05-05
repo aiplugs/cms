@@ -82,7 +82,7 @@
                 var padSize = maxSize.ToString("##,###").Length;
                 foreach (var file in Model.Files)
                 {
-                    var previewLink = Url.FilePreviewLink(Model.Path, file.Name, "Preview", "Files");
+                    var previewLink = Url.FilePreviewLink(Model.Path, file.Name);
                     <aiplugs-list-item name="Files[]" item="@file.Name">
                         <aiplugs-list-column class="flex" ic-get-from="@previewLink" ic-target="#preview" ic-replace-target="false">
                             <i class="far fa-file"></i>@file.Name
@@ -94,7 +94,7 @@
                             [B]
                         </aiplugs-list-column>
                         <aiplugs-list-column class="text-small" ic-get-from="@previewLink" ic-target="#preview" ic-replace-target="false">
-                            @file.LastModifiedAt
+                            @file.LastModifiedAt.LocalDateTime
                         </aiplugs-list-column>
                     </aiplugs-list-item>
                 }
@@ -102,7 +102,7 @@
         </aiplugs-list>
     </form>
 </aiplugs-blade>
-<div id="preview" class="flex"></div>
+<div id="preview" class="flex flex-row"></div>
 <script>
     function onSelectedItems() {
         const actions = AiplugsElements.find('#actions');

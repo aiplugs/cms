@@ -1,0 +1,7 @@
+@model (IFile File, string Path)
+@{
+    Layout = null;
+}
+<aiplugs-blade label="@Model.File.Name">
+<iframe src="/preview/files/@Model.Path" class="flex"></iframe>
+</aiplugs-blade>
