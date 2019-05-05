@@ -7,8 +7,9 @@
 
 @{
     ViewData["Title"] = "Log in";
+    Layout = "_LoginLayout";
 }
-<form>
+<form asp-action="Login" method="post">
     <aiplugs-input asp-for="Email" />
     <aiplugs-input asp-for="Password" />
     <aiplugs-input asp-for="RememberMe" />

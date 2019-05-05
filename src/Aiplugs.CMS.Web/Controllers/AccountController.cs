@@ -21,6 +21,7 @@ namespace Aiplugs.CMS.Web.Controllers
 {
     [Authorize]
     [Route("[controller]/[action]")]
+    [ServiceFilter(typeof(SharedDataLoad))]
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -101,11 +102,15 @@ namespace Aiplugs.CMS.Web.Controllers
 
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            var signin = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+                return View(nameof(Login), model);
+
+            var signin = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+            
             if (!signin.Succeeded)
-            {
                 return View(nameof(Login), new LoginViewModel());
-            }
             
             return RedirectToLocal(returnUrl);
         }
