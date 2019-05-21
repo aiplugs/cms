@@ -1,29 +1,90 @@
 ﻿@model (IItem Item, Collection Collection)
+@using System.Dynamic
+@using YamlDotNet.Serialization
 @{
     Layout = null;
     var title = (string)Model.Item.Data?.SelectToken(Model.Collection.TitlePath);
+    var serializer = new Serializer();
+    var eo = Model.Item.Data?.ToObject<ExpandoObject>();
+    var yaml = serializer.Serialize(eo);
 }
 <html>
+    <head>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+        <link rel="stylesheet" href="/lib/aiplugs-elements/css/variables.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                margin: 0;
+                padding: 0;
+            }
+            pre {
+                overflow: hidden;
+                max-height: 50vh;
+                margin: 0;
+            }
+            pre code {
+                padding: 16px 24px !important;
+            }
+            main {
+                padding: 16px 24px;
+            }
+            label {
+                font-size: 0.8em;
+                font-weight: bold;  
+                color: var(--color-text-primary);
+            }
+            p {
+                margin-top: 1em;
+                margin-bottom: 2em;
+            }
+            #code {
+                margin: 0;
+                padding: 0;
+                width: 0;
+                height: 0;
+            }
+            #code__opener {
+                padding: 8px;
+                text-align: center;
+                cursor: pointer;
+            }
+            #code__opener::before {
+                content: "\f078";
+                font-family: "Font Awesome 5 Free";
+            }
+            #code:checked ~ pre {
+                max-height: fit-content;
+            }
+            #code:checked ~ #code__opener::before  {
+                content: "\f106";
+            }
+        </style>
+    </head>
     <body>
-        <h1>@title</h1>
-        <pre>@Model.Item.Data?.ToString(Newtonsoft.Json.Formatting.Indented)</pre>
-        <table class="table">
-            <tr>
-                <th>Last Modified At</th>
-                <td>@Model.Item.UpdatedAt</td>
-            </tr>
-            <tr>
-                <th>Last Modified By</th>
-                <td>@Model.Item.UpdatedBy</td>
-            </tr>
-            <tr>
-                <th>Created At</th>
-                <td>@Model.Item.CreatedAt</td>
-            </tr>
-            <tr>
-                <th>Created By</th>
-                <td>@Model.Item.CreatedBy</td>
-            </tr>
-        </table>
+        <input type="checkbox" id="code">
+        <pre><code>@yaml</code></pre>
+        <label id="code__opener" for="code"></label>
+
+        <main>
+            <label>Title</label>
+            <p>@title</p>
+
+            <label>Last Modified At</label>
+            <p>@Model.Item.UpdatedAt.LocalDateTime</p>
+
+            <label>Last Modified By</label>
+            <p>@Model.Item.UpdatedBy</p>
+
+            <label>Created At</label>
+            <p>@Model.Item.CreatedAt.LocalDateTime</p>
+
+            <label>Created By</label>
+            <p>@Model.Item.CreatedBy</p>
+        </main>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
     </body>
 </html>
