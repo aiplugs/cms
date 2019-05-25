@@ -1,8 +1,6 @@
 ﻿using Aiplugs.CMS.Core.RazorLight;
 using Aiplugs.CMS.Data.Repositories;
-using Newtonsoft.Json.Linq;
 using RazorLight;
-using RazorLight.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +13,7 @@ namespace Aiplugs.CMS.Core.Services
         private readonly IUserResolver _userResolver;
         private readonly RazorLightEngine _engine;
 
-        public TemplateService(ITemplateRepository repository, IUserResolver userResolver, PropertyInjector injector)
+        public TemplateService(ITemplateRepository repository, IUserResolver userResolver)
         {
             _repository = repository;
             _userResolver = userResolver;
@@ -24,8 +22,6 @@ namespace Aiplugs.CMS.Core.Services
                 .UseProject(new AiplugsRazorProject(repository))
                 .UseMemoryCachingProvider()
                 .Build();
-            
-            _engine.Options.PreRenderCallbacks.Add(template => injector.Inject(template));
         }
 
         public async Task<IEnumerable<Template>> GetAsync()
