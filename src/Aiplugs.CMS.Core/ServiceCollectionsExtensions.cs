@@ -4,6 +4,7 @@ using Aiplugs.CMS.Core.Services;
 using Aiplugs.CMS.Data.QueryBuilders;
 using Aiplugs.CMS.Data.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using RazorLight.DependencyInjection;
 
 namespace Aiplugs.CMS.Core
 {
@@ -24,7 +25,7 @@ namespace Aiplugs.CMS.Core
             services.AddTransient<IAppConfiguration, AppConfiguration>();
             services.AddTransient<IContextFactory, ContextFactory>();
             services.AddTransient<ILockService, LockService>();
-            services.AddTransient<IUserResolver>(_ => new StaticUserResolver(Guid.Empty.ToString()));
+            services.AddTransient<IUserResolver, CurrentUserResolver>();
             services.AddSingleton<IJobRegistory, JobRegistory>();
             services.AddTransient<IProcedureService, ProcedureSerivce>();
             services.AddTransient<IValidationService, ValidationService>();
@@ -32,6 +33,7 @@ namespace Aiplugs.CMS.Core
             services.AddTransient<IStorageService, StorageService>();
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<IJobService, JobService>();
+            services.AddTransient<PropertyInjector>();
             services.AddTransient<ITemplateService, TemplateService>();
             services.AddTransient<IUserManageService, UserManageService>();
             services.AddHostedService<JobHostedService>();

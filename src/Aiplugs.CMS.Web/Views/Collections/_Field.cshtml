@@ -47,16 +47,16 @@ else if (Model.schema.Type == JSchemaType.Array)
         {
             values = new[] { (JToken)null };
         }
-        <aiplugs-array label="@Model.schema.Title" description="@Model.schema.Description" name="@Model.name" required=@Model.required>
+        <aiplugs-array label="@Model.schema.Title" description="@Model.schema.Description" name="@(Model.name)[{0}]" required=@Model.required>
             <template>
                 <aiplugs-array-item label="@Model.schema.Title">
-                    <partial name="_Field" model=@((items, (JToken)null, Model.name + "[]", false)) />
+                    <partial name="_Field" model=@((items, (JToken)null, (string)null, false)) />
                 </aiplugs-array-item>
             </template>
-            @foreach (var token in values)
+            @foreach (var (token, i) in values.Select((token, i) => (token, i)))
             {
-                var m = (items, token, Model.name + "[]", false);
-                <aiplugs-array-item label="@Model.schema.Title">
+                var m = (items, token, (string)null, false);
+                <aiplugs-array-item label="@Model.schema.Title" index="@i">
                     <partial name="_Field" model=@m />
                 </aiplugs-array-item>
             }

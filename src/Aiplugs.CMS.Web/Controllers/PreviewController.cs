@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Aiplugs.CMS.Web.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 namespace Aiplugs.CMS.Web.Controllers
@@ -9,13 +10,15 @@ namespace Aiplugs.CMS.Web.Controllers
         private readonly IStorageService _storageService;
         private readonly IDataService _dataService;
         private readonly ISettingsService _settingsService;
+        private readonly IUserManageService _userManageService;
 
-        public PreviewController(ITemplateService templateService, IStorageService storageService, IDataService dataService, ISettingsService settingsService)
+        public PreviewController(ITemplateService templateService, IStorageService storageService, IDataService dataService, ISettingsService settingsService, IUserManageService userManageService)
         {
             _templateService = templateService;
             _storageService = storageService;
             _dataService = dataService;
             _settingsService = settingsService;
+            _userManageService = userManageService;
         }
 
         [HttpGet("/preview/files/{*path}")]
@@ -26,7 +29,7 @@ namespace Aiplugs.CMS.Web.Controllers
             if (file == null)
                 return NotFound();
 
-            var model = (file, path);
+            var model = new FilePreviewViewModel { File = file, Path = path };
 
             var templateName = nameof(File);
             var template = await _templateService.FindAsync(templateName);
@@ -50,7 +53,12 @@ namespace Aiplugs.CMS.Web.Controllers
             if (item == null)
                 return NotFound();
 
-            var model = (Item: item, Collection: collection);
+            var model = new DataPreviewViewModel
+            { 
+                Item = item, 
+                Collection = collection,
+                ResolveUserNameAsync = async userId => (await _userManageService.FindUserAsync(userId))?.Name
+            };
 
             if (string.IsNullOrEmpty(collection.PreviewTemplate))
                 return View(model);

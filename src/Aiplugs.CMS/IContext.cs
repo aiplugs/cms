@@ -15,5 +15,6 @@ namespace Aiplugs.CMS
         IDataService DataService { get; }
         IStorageService StorageService { get; }
         ISettingsService SettingsService { get; }
+        IUserManageService UserManageService { get; }
     }
 }

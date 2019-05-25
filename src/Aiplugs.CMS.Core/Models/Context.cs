@@ -22,5 +22,7 @@ namespace Aiplugs.CMS.Core.Models
         public IStorageService StorageService { get; set; }
 
         public ISettingsService SettingsService { get; set; }
+
+        public IUserManageService UserManageService { get; set; }
     }
 }

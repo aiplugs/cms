@@ -1,4 +1,4 @@
-﻿@model (IItem Item, Collection Collection)
+﻿@model DataPreviewViewModel
 @using System.Dynamic
 @using YamlDotNet.Serialization
 @{
@@ -76,13 +76,13 @@
             <p>@Model.Item.UpdatedAt.LocalDateTime</p>
 
             <label>Last Modified By</label>
-            <p>@Model.Item.UpdatedBy</p>
+            <p>@((await Model.ResolveUserNameAsync(Model.Item.UpdatedBy)) ?? Model.Item.UpdatedBy)</p>
 
             <label>Created At</label>
             <p>@Model.Item.CreatedAt.LocalDateTime</p>
 
             <label>Created By</label>
-            <p>@Model.Item.CreatedBy</p>
+            <p>@((await Model.ResolveUserNameAsync(Model.Item.CreatedBy)) ?? Model.Item.CreatedBy)</p>
         </main>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script>
